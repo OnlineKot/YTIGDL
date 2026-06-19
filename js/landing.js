@@ -28,17 +28,12 @@ async function submitPin() {
   } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
   finally { pinBusy = false; }
 }
+$('pinSubmit').addEventListener('click', submitPin);
 $('pinInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') submitPin(); });
-
-// Klawiatura numeryczna
-$('keypad')?.addEventListener('click', (e) => {
-  const b = e.target.closest('button'); if (!b) return;
-  const k = b.dataset.k;
-  let v = $('pinInput').value;
-  if (k === 'ok') { submitPin(); return; }
-  if (k === 'clear') { v = v.slice(0, -1); }
-  else if (/^[0-9]$/.test(k) && v.length < 6) { v += k; }
-  $('pinInput').value = v;
+// Tylko cyfry; auto-submit po wpisaniu 6.
+$('pinInput').addEventListener('input', () => {
+  const el = $('pinInput');
+  el.value = el.value.replace(/\D/g, '').slice(0, 6);
   $('pinMsg').textContent = '';
-  if (v.length === 6) submitPin();
+  if (el.value.length === 6) submitPin();
 });

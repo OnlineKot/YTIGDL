@@ -23,7 +23,7 @@ export const FREE_DOWNLOAD_LIMIT = 5;
 //  To jest wyraźna zmienna mówiąca, jaki jest PIN do wejścia w panel
 //  (5× kliknięcie w „DL" w stopce → wpisz ten PIN).
 //  Działa od razu. Dodatkowo akceptowane są też PIN-y z kolekcji `adminPins`.
-export const ADMIN_PIN = '6412';
+export const ADMIN_PIN = '159123';
 // ════════════════════════════════════════════════════════════
 
 // ── Serwis pobierania mediów ──────────────────────────────────

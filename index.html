@@ -80,21 +80,8 @@
       <button class="modal-close" data-close-pin>&times;</button>
       <h2>Dostęp <span class="gradient">admina</span></h2>
       <p class="sub">Wpisz 6‑cyfrowy PIN, aby przejść do panelu.</p>
-      <input class="input" id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••" style="text-align:center;letter-spacing:.5em;font-size:1.3rem" />
-      <div class="keypad" id="keypad">
-        <button type="button" data-k="1">1</button>
-        <button type="button" data-k="2">2</button>
-        <button type="button" data-k="3">3</button>
-        <button type="button" data-k="4">4</button>
-        <button type="button" data-k="5">5</button>
-        <button type="button" data-k="6">6</button>
-        <button type="button" data-k="7">7</button>
-        <button type="button" data-k="8">8</button>
-        <button type="button" data-k="9">9</button>
-        <button type="button" data-k="clear" aria-label="Usuń">⌫</button>
-        <button type="button" data-k="0">0</button>
-        <button type="button" data-k="ok">OK</button>
-      </div>
+      <input class="input" id="pinInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="PIN" style="text-align:center;letter-spacing:.4em;font-size:1.3rem" />
+      <button class="btn btn-primary btn-block" id="pinSubmit" style="margin-top:12px">Wejdź</button>
       <div class="msg" id="pinMsg"></div>
     </div>
   </div>
