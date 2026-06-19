@@ -93,14 +93,15 @@ async function loadUsers() {
     const list = await listUsers();
     tbody.innerHTML = list.map((u) => `
       <tr>
-        <td>${esc(u.email || u.uid)} ${u.banned ? '<span class="tag revoked">ban</span>' : ''}</td>
+        <td>${esc(u.email || u.uid)} ${u.banned ? `<span class="tag revoked">ban${u.banType === 'shadow' ? ' (shadow)' : ''}</span>` : ''}</td>
         <td>${u.youtube || 0}</td>
         <td>${u.instagram || 0}</td>
         <td>${u.total || 0}</td>
         <td>${u.licenseKey ? `<code>${esc(u.licenseKey)}</code>` : '—'}</td>
         <td style="white-space:nowrap">${u.banned
           ? `<button class="btn btn-ghost" data-unban="${esc(u.uid)}" style="padding:6px 10px">Odbanuj</button>`
-          : `<button class="btn btn-ghost" data-ban="${esc(u.uid)}" style="padding:6px 10px;color:var(--danger)">Zbanuj</button>`}</td>
+          : `<button class="btn btn-ghost" data-ban-shadow="${esc(u.uid)}" style="padding:6px 10px">Shadow ban</button>
+             <button class="btn btn-ghost" data-ban-normal="${esc(u.uid)}" style="padding:6px 10px;color:var(--danger)">Ban</button>`}</td>
       </tr>`).join('') || '<tr><td colspan="6" style="color:var(--muted)">Brak użytkowników.</td></tr>';
   } catch (e) { toast(e.message, 'error'); }
 }
@@ -159,12 +160,14 @@ document.querySelector('#licTable').addEventListener('click', async (e) => {
 });
 
 document.querySelector('#usersTable').addEventListener('click', async (e) => {
-  const ban = e.target.closest('[data-ban]');
+  const shadow = e.target.closest('[data-ban-shadow]');
+  const normal = e.target.closest('[data-ban-normal]');
   const unban = e.target.closest('[data-unban]');
   try {
-    if (ban) { await setBanned(ban.dataset.ban, true); toast('Użytkownik zbanowany (shadow).', 'ok'); }
-    if (unban) { await setBanned(unban.dataset.unban, false); toast('Użytkownik odbanowany.', 'ok'); }
-    if (ban || unban) loadUsers();
+    if (shadow) { await setBanned(shadow.dataset.banShadow, 'shadow'); toast('Shadow ban nałożony.', 'ok'); }
+    if (normal) { await setBanned(normal.dataset.banNormal, 'normal'); toast('Ban nałożony.', 'ok'); }
+    if (unban) { await setBanned(unban.dataset.unban, null); toast('Użytkownik odbanowany.', 'ok'); }
+    if (shadow || normal || unban) loadUsers();
   } catch (err) { toast(err.message, 'error'); }
 });
 

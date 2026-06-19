@@ -94,6 +94,12 @@ async function handleDownload() {
       result.innerHTML = '⚠️ Sprawdź swoje połączenie sieciowe i spróbuj ponownie.';
       return;
     }
+    // Zwykły ban — jawna blokada.
+    if (eligibility.reason === 'ban') {
+      result.className = 'result show error';
+      result.innerHTML = '🚫 Twoje konto zostało zablokowane.';
+      return;
+    }
     const reasons = {
       device_limit: '🔒 To urządzenie wykorzystało dziś 5 darmowych pobrań. Wróć jutro albo wpisz kod PRO.',
       ip_limit: '🔒 Z tej sieci wykorzystano dziś 5 darmowych pobrań. Wróć jutro albo wpisz kod PRO.',

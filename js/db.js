@@ -275,19 +275,22 @@ export async function getStatus(user) {
   };
 }
 
-// ── BAN / SHADOWBAN ────────────────────────────────────────
-export async function isBanned(uid) {
-  const u = await getUsage(uid);
-  return !!u?.banned;
-}
-
-export async function setBanned(uid, banned) {
-  await setDoc(doc(db, 'usage', uid), { banned: !!banned, bannedAt: serverTimestamp() }, { merge: true });
+// ── BAN ────────────────────────────────────────────────────
+// banType: 'shadow' (fałszywy błąd sieci) | 'normal' (jawna blokada) | null (odbanowanie)
+export async function setBanned(uid, banType) {
+  if (banType) {
+    await setDoc(doc(db, 'usage', uid), { banned: true, banType, bannedAt: serverTimestamp() }, { merge: true });
+  } else {
+    await setDoc(doc(db, 'usage', uid), { banned: false, banType: null }, { merge: true });
+  }
 }
 
 export async function canDownload(user) {
-  // Ban ma pierwszeństwo — zwracamy „shadow" (udajemy problem z siecią).
-  if (await isBanned(user.uid)) return { allowed: false, reason: 'shadow' };
+  // Ban ma pierwszeństwo (przed PRO i limitami).
+  const usage0 = await getUsage(user.uid);
+  if (usage0?.banned) {
+    return { allowed: false, reason: usage0.banType === 'normal' ? 'ban' : 'shadow' };
+  }
   if (await userHasValidLicense(user.uid)) return { allowed: true, pro: true };
   const s = await getStatus(user);
   if (s.deviceUsed >= s.limit) return { allowed: false, pro: false, reason: 'device_limit' };
