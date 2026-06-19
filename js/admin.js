@@ -1,5 +1,5 @@
 import { watchAuth, loginGoogle, logout } from './firebase.js';
-import { createLicense, listLicenses, setLicenseStatus, listUsers, listEvents } from './db.js';
+import { createLicense, listLicenses, setLicenseStatus, deleteLicense, isLicenseExpired, setBanned, listUsers, listEvents } from './db.js';
 
 // Wejście tylko po poprawnym PIN-ie (ustawionym na stronie głównej). Inaczej cicho odsyłamy.
 if (sessionStorage.getItem('ytigdl_admin') !== '1') {
@@ -23,6 +23,9 @@ function fmtTime(at) {
     const d = at?.toDate ? at.toDate() : new Date(at);
     return d.toLocaleString('pl-PL');
   } catch { return '—'; }
+}
+function fmtDate(iso) {
+  try { return new Date(iso).toLocaleDateString('pl-PL'); } catch { return ''; }
 }
 
 $('googleBtn').addEventListener('click', () => loginGoogle().catch((e) => toast(e.message, 'error')));
@@ -57,17 +60,30 @@ async function loadLicenses() {
   const tbody = document.querySelector('#licTable tbody');
   try {
     const list = await listLicenses();
-    tbody.innerHTML = list.map((l) => `
+    tbody.innerHTML = list.map((l) => {
+      const expired = isLicenseExpired(l);
+      const validityTxt = l.validity === 'forever' ? 'Na zawsze'
+        : l.validity === 'temporary'
+          ? (expired ? `wygasł ${fmtDate(l.expiresAt)}` : `do ${fmtDate(l.expiresAt)}`)
+          : 'Do odwołania';
+      const statusTxt = expired ? 'wygasła' : (l.status === 'active' ? 'aktywna' : 'unieważniona');
+      const statusTag = expired ? 'revoked' : l.status;
+      return `
       <tr>
         <td><code>${esc(l.key)}</code></td>
         <td>${esc(l.plan)}</td>
-        <td><span class="tag ${l.status}">${l.status === 'active' ? 'aktywna' : 'unieważniona'}</span></td>
+        <td>${esc(validityTxt)}</td>
+        <td><span class="tag ${statusTag}">${statusTxt}</span></td>
         <td>${(l.activations?.length || 0)}/${l.maxActivations}</td>
         <td>${esc(l.note || '—')}</td>
-        <td>${l.status === 'active'
-          ? `<button class="btn btn-ghost" data-revoke="${esc(l.key)}" style="padding:6px 10px">Unieważnij</button>`
-          : `<button class="btn btn-ghost" data-restore="${esc(l.key)}" style="padding:6px 10px">Przywróć</button>`}</td>
-      </tr>`).join('') || '<tr><td colspan="6" style="color:var(--muted)">Brak licencji.</td></tr>';
+        <td style="white-space:nowrap">
+          ${l.status === 'active'
+            ? `<button class="btn btn-ghost" data-revoke="${esc(l.key)}" style="padding:6px 10px">Unieważnij</button>`
+            : `<button class="btn btn-ghost" data-restore="${esc(l.key)}" style="padding:6px 10px">Przywróć</button>`}
+          <button class="btn btn-ghost" data-delete="${esc(l.key)}" style="padding:6px 10px;color:var(--danger)">Usuń</button>
+        </td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="7" style="color:var(--muted)">Brak licencji.</td></tr>';
   } catch (e) { toast(e.message, 'error'); }
 }
 
@@ -77,12 +93,15 @@ async function loadUsers() {
     const list = await listUsers();
     tbody.innerHTML = list.map((u) => `
       <tr>
-        <td>${esc(u.email || u.uid)}</td>
+        <td>${esc(u.email || u.uid)} ${u.banned ? '<span class="tag revoked">ban</span>' : ''}</td>
         <td>${u.youtube || 0}</td>
         <td>${u.instagram || 0}</td>
         <td>${u.total || 0}</td>
         <td>${u.licenseKey ? `<code>${esc(u.licenseKey)}</code>` : '—'}</td>
-      </tr>`).join('') || '<tr><td colspan="5" style="color:var(--muted)">Brak użytkowników.</td></tr>';
+        <td style="white-space:nowrap">${u.banned
+          ? `<button class="btn btn-ghost" data-unban="${esc(u.uid)}" style="padding:6px 10px">Odbanuj</button>`
+          : `<button class="btn btn-ghost" data-ban="${esc(u.uid)}" style="padding:6px 10px;color:var(--danger)">Zbanuj</button>`}</td>
+      </tr>`).join('') || '<tr><td colspan="6" style="color:var(--muted)">Brak użytkowników.</td></tr>';
   } catch (e) { toast(e.message, 'error'); }
 }
 
@@ -100,12 +119,19 @@ async function loadEvents() {
   } catch (e) { toast(e.message, 'error'); }
 }
 
+// Pokaż pole „Liczba dni" tylko dla kodu czasowego.
+$('validitySelect').addEventListener('change', () => {
+  $('daysField').classList.toggle('hidden', $('validitySelect').value !== 'temporary');
+});
+
 $('genBtn').addEventListener('click', async () => {
   try {
     const lic = await createLicense({
       plan: $('planSelect').value,
       maxActivations: Number($('maxActivations').value) || 1,
       note: $('note').value.trim(),
+      validity: $('validitySelect').value,
+      days: Number($('daysInput').value) || 30,
       createdBy: currentUser?.email || '',
     });
     $('genResult').className = 'msg ok';
@@ -120,10 +146,25 @@ $('genBtn').addEventListener('click', async () => {
 document.querySelector('#licTable').addEventListener('click', async (e) => {
   const revoke = e.target.closest('[data-revoke]');
   const restore = e.target.closest('[data-restore]');
+  const del = e.target.closest('[data-delete]');
   try {
     if (revoke) { await setLicenseStatus(revoke.dataset.revoke, 'revoked'); toast('Unieważniono.', 'ok'); }
     if (restore) { await setLicenseStatus(restore.dataset.restore, 'active'); toast('Przywrócono.', 'ok'); }
-    if (revoke || restore) loadLicenses();
+    if (del) {
+      if (!confirm(`Usunąć kod ${del.dataset.delete} całkowicie? Tej operacji nie da się cofnąć.`)) return;
+      await deleteLicense(del.dataset.delete); toast('Kod usunięty.', 'ok');
+    }
+    if (revoke || restore || del) loadLicenses();
+  } catch (err) { toast(err.message, 'error'); }
+});
+
+document.querySelector('#usersTable').addEventListener('click', async (e) => {
+  const ban = e.target.closest('[data-ban]');
+  const unban = e.target.closest('[data-unban]');
+  try {
+    if (ban) { await setBanned(ban.dataset.ban, true); toast('Użytkownik zbanowany (shadow).', 'ok'); }
+    if (unban) { await setBanned(unban.dataset.unban, false); toast('Użytkownik odbanowany.', 'ok'); }
+    if (ban || unban) loadUsers();
   } catch (err) { toast(err.message, 'error'); }
 });
 

@@ -1,6 +1,6 @@
 // Warstwa danych na Firestore (klient-side). Zastępuje backend Node na GitHub Pages.
 import {
-  doc, getDoc, setDoc, updateDoc,
+  doc, getDoc, setDoc, updateDoc, deleteDoc,
   collection, getDocs, query, orderBy, limit as qLimit,
   arrayUnion, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -149,10 +149,17 @@ export function generateLicenseKey() {
   return `YTIG-${seg()}-${seg()}-${seg()}`;
 }
 
-export async function createLicense({ plan = 'pro', maxActivations = 1, note = '', createdBy = '' }) {
+// validity: 'forever' (na zawsze) | 'until_revoked' (do odwołania) | 'temporary' (czasowy, N dni)
+export async function createLicense({ plan = 'pro', maxActivations = 1, note = '', createdBy = '', validity = 'until_revoked', days = 0 }) {
   const key = generateLicenseKey();
+  let expiresAt = null;
+  if (validity === 'temporary') {
+    const d = Math.max(1, Number(days) || 1);
+    expiresAt = new Date(Date.now() + d * 86400000).toISOString();
+  }
   const license = {
     key, plan, status: 'active',
+    validity, expiresAt,
     maxActivations: Math.max(1, Number(maxActivations) || 1),
     activations: [], note: String(note).slice(0, 200), createdBy,
     createdAt: serverTimestamp(),
@@ -176,9 +183,20 @@ export async function setLicenseStatus(key, status) {
   await updateDoc(doc(db, 'licenses', key), { status, updatedAt: serverTimestamp() });
 }
 
+// Całkowite usunięcie kodu.
+export async function deleteLicense(key) {
+  await deleteDoc(doc(db, 'licenses', key));
+}
+
+// Czy kod jest „świeży" (aktywny i nieprzeterminowany)?
+export function isLicenseExpired(license) {
+  return !!license?.expiresAt && Date.now() > Date.parse(license.expiresAt);
+}
+
 const ACTIVATE_REASONS = {
   not_found: 'Nie znaleziono takiego kodu PRO.',
   revoked: 'Ten kod PRO został unieważniony.',
+  expired: 'Ten kod PRO wygasł.',
   limit_reached: 'Ten kod PRO osiągnął limit aktywacji.',
 };
 
@@ -187,6 +205,7 @@ export async function activateLicense(key, user) {
   const license = await getLicense(normalized);
   if (!license) return { ok: false, error: ACTIVATE_REASONS.not_found };
   if (license.status !== 'active') return { ok: false, error: ACTIVATE_REASONS.revoked };
+  if (isLicenseExpired(license)) return { ok: false, error: ACTIVATE_REASONS.expired };
 
   const already = license.activations?.some((a) => a.uid === user.uid);
   if (!already) {
@@ -206,7 +225,8 @@ export async function userHasValidLicense(uid) {
   const usage = await getUsage(uid);
   if (!usage?.licenseKey) return false;
   const license = await getLicense(usage.licenseKey);
-  return !!license && license.status === 'active' && license.activations?.some((a) => a.uid === uid);
+  if (!license || license.status !== 'active' || isLicenseExpired(license)) return false;
+  return license.activations?.some((a) => a.uid === uid);
 }
 
 // ── ZDARZENIA / ŚLEDZENIE ──────────────────────────────────
@@ -255,7 +275,19 @@ export async function getStatus(user) {
   };
 }
 
+// ── BAN / SHADOWBAN ────────────────────────────────────────
+export async function isBanned(uid) {
+  const u = await getUsage(uid);
+  return !!u?.banned;
+}
+
+export async function setBanned(uid, banned) {
+  await setDoc(doc(db, 'usage', uid), { banned: !!banned, bannedAt: serverTimestamp() }, { merge: true });
+}
+
 export async function canDownload(user) {
+  // Ban ma pierwszeństwo — zwracamy „shadow" (udajemy problem z siecią).
+  if (await isBanned(user.uid)) return { allowed: false, reason: 'shadow' };
   if (await userHasValidLicense(user.uid)) return { allowed: true, pro: true };
   const s = await getStatus(user);
   if (s.deviceUsed >= s.limit) return { allowed: false, pro: false, reason: 'device_limit' };

@@ -52,9 +52,21 @@
           </div>
           <div class="field">
             <label>Liczba aktywacji</label>
-            <input id="maxActivations" type="number" value="1" min="1" style="width:120px" />
+            <input id="maxActivations" type="number" value="1" min="1" style="width:110px" />
           </div>
-          <div class="field" style="flex:1;min-width:180px">
+          <div class="field">
+            <label>Ważność</label>
+            <select id="validitySelect">
+              <option value="until_revoked" selected>Do odwołania</option>
+              <option value="forever">Na zawsze</option>
+              <option value="temporary">Czasowy (dni)</option>
+            </select>
+          </div>
+          <div class="field hidden" id="daysField">
+            <label>Liczba dni</label>
+            <input id="daysInput" type="number" value="30" min="1" style="width:100px" />
+          </div>
+          <div class="field" style="flex:1;min-width:160px">
             <label>Notatka (np. dla kogo)</label>
             <input id="note" type="text" placeholder="np. klient @nick" />
           </div>
@@ -68,7 +80,7 @@
         <h2>Licencje</h2>
         <div class="table-scroll">
           <table id="licTable">
-            <thead><tr><th>Kod</th><th>Plan</th><th>Status</th><th>Aktywacje</th><th>Notatka</th><th></th></tr></thead>
+            <thead><tr><th>Kod</th><th>Plan</th><th>Ważność</th><th>Status</th><th>Aktywacje</th><th>Notatka</th><th></th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -79,7 +91,7 @@
         <h2>Użytkownicy</h2>
         <div class="table-scroll">
           <table id="usersTable">
-            <thead><tr><th>E-mail</th><th>YouTube</th><th>Instagram</th><th>Razem</th><th>Licencja</th></tr></thead>
+            <thead><tr><th>E-mail</th><th>YouTube</th><th>Instagram</th><th>Razem</th><th>Licencja</th><th></th></tr></thead>
             <tbody></tbody>
           </table>
         </div>

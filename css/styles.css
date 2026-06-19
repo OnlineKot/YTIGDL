@@ -80,17 +80,17 @@ a { color: inherit; text-decoration: none; }
 
 /* ── Logo YTIGDL: YT i IG jako czarne kafelki z ikoną marki + tekstem, DL łagodny żółty ── */
 .logo {
-  display: inline-flex; align-items: center; gap: 2px; line-height: 1;
-  letter-spacing: -0.01em; font-weight: 850; font-size: 1.6rem;
+  display: inline-flex; align-items: center; gap: 1px; line-height: 1;
+  letter-spacing: -0.02em; font-weight: 850; font-size: 1.72rem;
   -webkit-user-select: none; user-select: none; touch-action: manipulation;
 }
 /* Czarne kafelki marek — litery to „okno" na obrazek marki (background-clip: text) */
 .bYT, .bIG {
   display: inline-flex; align-items: center;
-  background: #000; border-radius: 8px; padding: 2px 7px;
-  font-size: 0.98em; font-weight: 850; letter-spacing: 0.3px;
+  background: #000; border-radius: 9px; padding: 3px 8px;
+  font-size: 1em; font-weight: 850; letter-spacing: 0;
 }
-.bYT { margin-right: 1px; }
+.bYT { margin-right: 0; }
 .fill {
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
@@ -98,11 +98,10 @@ a { color: inherit; text-decoration: none; }
 }
 .fill.yt { background-image: url(../assets/yt.svg); }
 .fill.ig { background-image: url(../assets/ig.svg); }
-/* DL jako łagodny, ciepły żółty tekst (background-image, by nie skasować clipu) */
+/* DL jako solidny, łagodny żółty (bez clipu — pewny render na każdym urządzeniu) */
 .bDL {
-  background-image: linear-gradient(180deg, #ffdf6b, #ffc02e);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
+  color: #ffce47; -webkit-text-fill-color: #ffce47;
+  margin-left: 5px; font-weight: 850;
 }
 #secretSpot { -webkit-user-select: none; user-select: none; touch-action: manipulation; cursor: default; }
 
@@ -484,3 +483,16 @@ details.adv .adv-body { padding: 0 18px 18px; }
 .onb-step .tx { font-size: 0.92rem; }
 .onb-step .tx b { display: block; }
 .onb-step .tx span { color: var(--muted); font-size: 0.85rem; }
+
+/* ── Klawiatura numeryczna (PIN admina) ──────────────────── */
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 4px; }
+.keypad button {
+  padding: 15px 0; font-size: 1.25rem; font-weight: 700; border-radius: 12px;
+  border: 1px solid var(--card-border); background: rgba(255,255,255,0.04); color: var(--text);
+  cursor: pointer; transition: background .15s ease, transform .1s ease;
+  -webkit-user-select: none; user-select: none;
+}
+.keypad button:hover { background: var(--card-strong); }
+.keypad button:active { transform: scale(0.96); }
+.keypad button[data-k="ok"] { background: var(--accent); color: #fff; border: none; }
+.keypad button[data-k="clear"] { color: var(--muted); font-size: 1.4rem; }

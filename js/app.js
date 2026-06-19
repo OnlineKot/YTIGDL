@@ -88,6 +88,12 @@ async function handleDownload() {
   catch (e) { toast('Błąd sprawdzania limitu: ' + e.message, 'error'); return; }
 
   if (!eligibility.allowed) {
+    // Shadowban — udajemy problem z siecią, nie zdradzamy bana.
+    if (eligibility.reason === 'shadow') {
+      result.className = 'result show error';
+      result.innerHTML = '⚠️ Sprawdź swoje połączenie sieciowe i spróbuj ponownie.';
+      return;
+    }
     const reasons = {
       device_limit: '🔒 To urządzenie wykorzystało dziś 5 darmowych pobrań. Wróć jutro albo wpisz kod PRO.',
       ip_limit: '🔒 Z tej sieci wykorzystano dziś 5 darmowych pobrań. Wróć jutro albo wpisz kod PRO.',
