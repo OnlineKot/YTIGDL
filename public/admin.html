@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YTIGDL — Panel admina</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;850&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand"><span class="dot"></span> YTIG<span class="gradient">DL</span> &nbsp;<span style="color:var(--muted);font-weight:600;font-size:.9rem">Panel admina</span></div>
+    <div class="nav-actions">
+      <a class="btn btn-ghost" href="/">← Strona główna</a>
+      <div class="user-chip hidden" id="userChip">
+        <img id="userAvatar" alt="" />
+        <span class="em" id="userEmail"></span>
+        <button class="btn btn-ghost" id="logoutBtn" style="padding:6px 10px">Wyloguj</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Ekran logowania / braku dostępu -->
+  <div id="gate" class="center-card">
+    <h2 style="font-size:1.6rem;margin-bottom:10px">Panel <span class="gradient">admina</span></h2>
+    <p style="color:var(--muted);margin-bottom:24px" id="gateMsg">Zaloguj się kontem administratora.</p>
+    <button class="btn btn-primary btn-block" id="googleBtn" style="margin-bottom:10px">Zaloguj przez Google</button>
+    <button class="btn btn-block" id="microsoftBtn">Zaloguj przez Microsoft</button>
+  </div>
+
+  <!-- Główny panel -->
+  <div class="admin-wrap hidden" id="panel">
+    <div class="admin-grid">
+      <!-- Wydawanie licencji -->
+      <div class="panel">
+        <h2>Wydaj kod <span class="gradient">PRO</span></h2>
+        <div class="form-inline">
+          <div class="field">
+            <label>Plan</label>
+            <select id="planSelect">
+              <option value="pro">PRO</option>
+              <option value="lifetime">Lifetime</option>
+              <option value="trial">Trial</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Liczba aktywacji</label>
+            <input id="maxActivations" type="number" value="1" min="1" style="width:120px" />
+          </div>
+          <div class="field" style="flex:1;min-width:180px">
+            <label>Notatka (np. dla kogo)</label>
+            <input id="note" type="text" placeholder="np. klient @nick" />
+          </div>
+          <button class="btn btn-primary" id="genBtn">Wygeneruj kod</button>
+        </div>
+        <div id="genResult" class="msg"></div>
+      </div>
+
+      <!-- Lista licencji -->
+      <div class="panel">
+        <h2>Licencje</h2>
+        <div class="table-scroll">
+          <table id="licTable">
+            <thead><tr><th>Kod</th><th>Plan</th><th>Status</th><th>Aktywacje</th><th>Notatka</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Użytkownicy -->
+      <div class="panel">
+        <h2>Użytkownicy</h2>
+        <div class="table-scroll">
+          <table id="usersTable">
+            <thead><tr><th>E-mail</th><th>YouTube</th><th>Instagram</th><th>Razem</th><th>Licencja</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Dziennik zdarzeń -->
+      <div class="panel">
+        <h2>Ostatnie zdarzenia <span style="color:var(--muted);font-size:.85rem;font-weight:500">(logowania, pobrania, aktywacje)</span></h2>
+        <div class="table-scroll">
+          <table id="eventsTable">
+            <thead><tr><th>Czas</th><th>Typ</th><th>Szczegóły</th><th>E-mail</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script type="module" src="/js/admin.js"></script>
+</body>
+</html>
