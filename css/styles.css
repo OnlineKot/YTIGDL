@@ -80,16 +80,17 @@ a { color: inherit; text-decoration: none; }
 
 /* ── Logo YTIGDL: YT i IG jako czarne kafelki z ikoną marki + tekstem, DL łagodny żółty ── */
 .logo {
-  display: inline-flex; align-items: center; gap: 5px; line-height: 1;
-  letter-spacing: -0.02em; font-weight: 850; font-size: 1.55rem;
+  display: inline-flex; align-items: center; gap: 2px; line-height: 1;
+  letter-spacing: -0.01em; font-weight: 850; font-size: 1.6rem;
   -webkit-user-select: none; user-select: none; touch-action: manipulation;
 }
 /* Czarne kafelki marek — litery to „okno" na obrazek marki (background-clip: text) */
 .bYT, .bIG {
   display: inline-flex; align-items: center;
-  background: #000; border-radius: 8px; padding: 2px 8px;
-  font-size: 0.8em; font-weight: 850;
+  background: #000; border-radius: 8px; padding: 2px 7px;
+  font-size: 0.98em; font-weight: 850; letter-spacing: 0.3px;
 }
+.bYT { margin-right: 1px; }
 .fill {
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
