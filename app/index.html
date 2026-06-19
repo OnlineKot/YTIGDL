@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aplikacja — YTIGDL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;850&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <nav class="nav">
+    <a href="../" class="brand">
+      <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></span>
+      <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span>
+    </a>
+    <div class="nav-actions">
+      <button class="btn btn-ghost hidden" id="proBtn">Mam kod <span class="pro">PRO</span></button>
+      <button class="btn btn-primary" id="loginBtn">Zaloguj się</button>
+      <div class="user-chip hidden" id="userChip">
+        <img id="userAvatar" alt="" />
+        <span class="em" id="userEmail"></span>
+        <button class="btn btn-ghost" id="logoutBtn" style="padding:6px 10px">Wyloguj</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ONBOARDING (gdy niezalogowany) -->
+  <section class="onboarding" id="onboarding">
+    <div class="onb-card">
+      <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></span>
+      <h1>Zacznij pobierać</h1>
+      <p>Załóż darmowe konto — zajmie 20 sekund.</p>
+      <div class="onb-steps">
+        <div class="onb-step"><span class="n">1</span><span class="tx"><b>Załóż konto</b><span>E-mailem, Google albo SMS-em.</span></span></div>
+        <div class="onb-step"><span class="n">2</span><span class="tx"><b>Wklej link</b><span>Z YouTube lub Instagrama.</span></span></div>
+        <div class="onb-step"><span class="n">3</span><span class="tx"><b>Pobierz</b><span>Wybierz format i jakość. 5 pobrań dziennie gratis.</span></span></div>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" id="onbRegister">Utwórz darmowe konto</button>
+      <button class="btn btn-block" id="onbLogin" style="margin-top:10px">Mam już konto — zaloguj się</button>
+    </div>
+  </section>
+
+  <!-- APLIKACJA (gdy zalogowany) -->
+  <main class="page hidden" id="appMain">
+    <div class="page-head">
+      <h1>Pobierz <span class="gradient">media</span></h1>
+      <p>Wklej link, dobierz format i jakość. Najwyższa jakość zaznaczona domyślnie.</p>
+    </div>
+
+    <section class="downloader">
+      <div class="input-row">
+        <input class="input" id="urlInput" type="url" placeholder="Wklej tutaj link z YouTube lub Instagrama…" />
+        <button class="btn btn-primary" id="downloadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Pobierz
+        </button>
+      </div>
+
+      <div class="options">
+        <div class="opt">
+          <label>Format</label>
+          <select id="optFormat">
+            <option value="mp4" selected>🎬 Wideo (MP4)</option>
+            <option value="webm">🎬 Wideo (WebM)</option>
+            <option value="audio">🎧 Audio (MP3)</option>
+            <option value="mute">🔇 Wideo bez dźwięku</option>
+          </select>
+        </div>
+        <div class="opt" id="qualityWrap">
+          <label>Jakość wideo</label>
+          <select id="optQuality">
+            <option value="max" selected>Najwyższa dostępna</option>
+            <option value="4320">8K (4320p)</option>
+            <option value="2160">4K (2160p)</option>
+            <option value="1440">2K (1440p)</option>
+            <option value="1080">Full HD (1080p)</option>
+            <option value="720">HD (720p)</option>
+            <option value="480">480p</option>
+            <option value="360">360p</option>
+          </select>
+        </div>
+        <div class="opt" id="codecWrap">
+          <label>Kodek wideo</label>
+          <select id="optCodec">
+            <option value="h264" selected>H.264 (najzgodniejszy)</option>
+            <option value="av1">AV1 (mniejszy plik)</option>
+            <option value="vp9">VP9</option>
+          </select>
+        </div>
+        <div class="opt hidden" id="audioWrap">
+          <label>Jakość audio (MP3)</label>
+          <select id="optAudio">
+            <option value="320" selected>320 kbps</option>
+            <option value="256">256 kbps</option>
+            <option value="192">192 kbps</option>
+            <option value="128">128 kbps</option>
+          </select>
+        </div>
+      </div>
+
+      <details class="adv">
+        <summary>Więcej opcji <span class="badge-soft">tytuł · autor · przycinanie</span></summary>
+        <div class="adv-body">
+          <div class="options" style="margin-top:14px">
+            <div class="opt">
+              <label>Tytuł / nazwa pliku</label>
+              <input id="optTitle" type="text" placeholder="np. Moje wideo" />
+              <span class="hint">Zmienia nazwę zapisywanego pliku.</span>
+            </div>
+            <div class="opt">
+              <label>Autor</label>
+              <input id="optAuthor" type="text" placeholder="YTIGDL" value="YTIGDL" />
+              <span class="hint">Zapisywany w Twojej historii pobrań.</span>
+            </div>
+            <div class="opt">
+              <label>Styl nazwy</label>
+              <select id="optFilenameStyle">
+                <option value="pretty" selected>Czytelny</option>
+                <option value="basic">Podstawowy</option>
+                <option value="classic">Klasyczny</option>
+                <option value="nerdy">Techniczny</option>
+              </select>
+            </div>
+            <div class="opt span-2">
+              <label>Przytnij (mm:ss) <span class="badge-soft">eksperymentalne</span></label>
+              <div class="trim-row">
+                <input id="optTrimStart" type="text" inputmode="numeric" placeholder="od 00:00" />
+                <input id="optTrimEnd" type="text" inputmode="numeric" placeholder="do 01:30" />
+              </div>
+              <span class="hint">Zapisywane w historii; pełne cięcie pliku wymaga zaplecza (wkrótce).</span>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="usage-bar hidden" id="usageBar">
+        <span id="usageText">—</span>
+        <div class="usage-track"><div class="usage-fill" id="usageFill"></div></div>
+      </div>
+
+      <div class="result" id="result"></div>
+    </section>
+
+    <p style="text-align:center;margin-top:18px;color:var(--muted);font-size:.88rem">
+      <a href="../history/" class="link">Twoja historia pobrań →</a>
+    </p>
+  </main>
+
+  <!-- Modal kodu PRO -->
+  <div class="modal-backdrop" id="proModal">
+    <div class="modal">
+      <button class="modal-close" data-close-pro>&times;</button>
+      <h2>Aktywuj plan <span class="pro">PRO</span></h2>
+      <p class="sub">Wpisz kod licencyjny, aby pobierać bez dziennego limitu.</p>
+      <input class="input" id="proInput" type="text" placeholder="YTIG-XXXX-XXXX-XXXX" />
+      <button class="btn btn-primary btn-block" id="activateProBtn">Aktywuj <span class="pro">PRO</span></button>
+      <div class="msg" id="proMsg"></div>
+    </div>
+  </div>
+
+  <div class="floor-ball"></div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="../js/app.js"></script>
+</body>
+</html>

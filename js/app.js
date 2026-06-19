@@ -2,22 +2,32 @@ import { initAuthUI, getUser, isVerified, openLogin, toast } from './ui.js';
 import { track } from './firebase.js';
 import {
   getStatus, canDownload, incrementUsage, incrementIpUsage, incrementDeviceDaily,
-  activateLicense, logEvent, addHistory, verifyPin,
+  activateLicense, logEvent, addHistory,
 } from './db.js';
 import { detectPlatform, isSupportedUrl, triggerDownload } from './download.js';
 
 const $ = (id) => document.getElementById(id);
-if ($('year')) $('year').textContent = new Date().getFullYear();
 
 function openModal(id) { $(id).classList.add('show'); }
 function closeModal(id) { $(id).classList.remove('show'); }
 document.querySelectorAll('[data-close-pro]').forEach((b) => b.addEventListener('click', () => closeModal('proModal')));
 $('proModal').addEventListener('click', (e) => { if (e.target.id === 'proModal') closeModal('proModal'); });
 
+// ── Onboarding ↔ aplikacja ─────────────────────────────────
+$('onbRegister').addEventListener('click', () => openLogin('register'));
+$('onbLogin').addEventListener('click', () => openLogin('login'));
+
+function showApp(user) {
+  const logged = !!user;
+  $('onboarding').classList.toggle('hidden', logged);
+  $('appMain').classList.toggle('hidden', !logged);
+  $('proBtn').classList.toggle('hidden', !logged);
+  if (logged) refreshStatus(user);
+}
+
 // ── Pokazywanie opcji zależnie od formatu ──────────────────
 function syncFormat() {
-  const fmt = $('optFormat').value;
-  const isAudio = fmt === 'audio';
+  const isAudio = $('optFormat').value === 'audio';
   $('audioWrap').classList.toggle('hidden', !isAudio);
   $('qualityWrap').classList.toggle('hidden', isAudio);
   $('codecWrap').classList.toggle('hidden', isAudio);
@@ -67,7 +77,7 @@ async function handleDownload() {
   const user = getUser();
   if (!url) { toast('Wklej najpierw link.', 'error'); return; }
   if (!isSupportedUrl(url)) { toast('Obsługujemy linki z YouTube i Instagrama.', 'error'); return; }
-  if (!user) { openLogin(); return; }
+  if (!user) { openLogin('register'); return; }
   if (!isVerified(user)) { toast('Najpierw potwierdź adres e-mail.', 'error'); return; }
 
   const platform = detectPlatform(url);
@@ -128,14 +138,14 @@ async function handleDownload() {
 
 // ── Kod PRO ────────────────────────────────────────────────
 $('proBtn').addEventListener('click', () => {
-  if (!getUser()) { openLogin(); return; }
+  if (!getUser()) { openLogin('login'); return; }
   openModal('proModal');
 });
 $('activateProBtn').addEventListener('click', async () => {
   const key = $('proInput').value.trim();
   const msg = $('proMsg');
   const user = getUser();
-  if (!user) { openLogin(); return; }
+  if (!user) { openLogin('login'); return; }
   if (!key) { msg.className = 'msg error'; msg.textContent = 'Wpisz kod PRO.'; return; }
   try {
     const res = await activateLicense(key, user);
@@ -149,29 +159,5 @@ $('activateProBtn').addEventListener('click', async () => {
   } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
 });
 
-// ── Ukryte wejście do panelu admina (PIN) — tylko jeśli jest na stronie ──
-const secret = $('secretSpot');
-if (secret && $('pinModal')) {
-  let clicks = 0, timer = null;
-  secret.addEventListener('click', () => {
-    clicks++; clearTimeout(timer); timer = setTimeout(() => (clicks = 0), 1500);
-    if (clicks >= 5) { clicks = 0; $('pinInput').value = ''; $('pinMsg').textContent = ''; openModal('pinModal'); $('pinInput').focus(); }
-  });
-  document.querySelectorAll('[data-close-pin]').forEach((b) => b.addEventListener('click', () => closeModal('pinModal')));
-  $('pinModal').addEventListener('click', (e) => { if (e.target.id === 'pinModal') closeModal('pinModal'); });
-  const submitPin = async () => {
-    const pin = $('pinInput').value.trim(); const msg = $('pinMsg');
-    if (!pin) { msg.className = 'msg error'; msg.textContent = 'Wpisz PIN.'; return; }
-    const b = $('pinSubmit'); b.disabled = true;
-    try {
-      if (await verifyPin(pin)) { sessionStorage.setItem('ytigdl_admin', '1'); location.href = 'admin/'; }
-      else { msg.className = 'msg error'; msg.textContent = 'Błędny PIN.'; }
-    } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
-    finally { b.disabled = false; }
-  };
-  $('pinSubmit').addEventListener('click', submitPin);
-  $('pinInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') submitPin(); });
-}
-
 // ── Start ──────────────────────────────────────────────────
-initAuthUI({ onUser: (user) => refreshStatus(user) });
+initAuthUI({ onUser: showApp });

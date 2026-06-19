@@ -28,7 +28,10 @@ export function toast(message, type = '') {
   setTimeout(() => (el.className = `toast ${type}`), 3500);
 }
 
-export function openLogin() { $('authModal')?.classList.add('show'); }
+export function openLogin(mode) {
+  if (mode) setMode(mode);
+  $('authModal')?.classList.add('show');
+}
 function closeLogin() { $('authModal')?.classList.remove('show'); }
 
 const MODAL_HTML = `
