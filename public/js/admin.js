@@ -3,7 +3,7 @@ import { createLicense, listLicenses, setLicenseStatus, listUsers, listEvents } 
 
 // Wejście tylko po poprawnym PIN-ie (ustawionym na stronie głównej). Inaczej cicho odsyłamy.
 if (sessionStorage.getItem('ytigdl_admin') !== '1') {
-  location.replace('index.html');
+  location.replace('../');
 }
 
 const $ = (id) => document.getElementById(id);
@@ -29,7 +29,7 @@ $('googleBtn').addEventListener('click', () => loginGoogle().catch((e) => toast(
 $('logoutBtn').addEventListener('click', async () => {
   sessionStorage.removeItem('ytigdl_admin');
   await logout();
-  location.replace('index.html');
+  location.replace('../');
 });
 
 function onUser(user) {

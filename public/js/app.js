@@ -289,7 +289,7 @@ async function submitPin() {
   try {
     if (await verifyPin(pin)) {
       sessionStorage.setItem('ytigdl_admin', '1');
-      location.href = 'admin.html';
+      location.href = 'admin/';
     } else {
       msg.className = 'msg error'; msg.textContent = 'Błędny PIN.';
     }
