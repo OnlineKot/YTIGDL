@@ -5,14 +5,15 @@ import {
   arrayUnion, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { db } from './firebase.js';
-import { FREE_DOWNLOAD_LIMIT } from './config.js';
+import { FREE_DOWNLOAD_LIMIT, ADMIN_PIN } from './config.js';
 
-// Weryfikacja PIN-u admina. PIN NIE jest w kodzie — to ID dokumentu w kolekcji `adminPins`.
-// Aby ustawić PIN: w konsoli Firestore utwórz dokument adminPins/<twój-pin> (może być pusty).
-// Trik: poprawny PIN trzeba znać, żeby odczytać dokument po ID — nie da się go wylistować.
+// Weryfikacja PIN-u admina.
+// 1) Pasuje, jeśli równy zmiennej ADMIN_PIN z config.js (wyraźna zmienna — działa od razu).
+// 2) Albo jeśli istnieje dokument adminPins/<pin> w Firestore (możesz dodawać kolejne w konsoli).
 export async function verifyPin(pin) {
   const clean = String(pin || '').trim();
   if (!clean) return false;
+  if (ADMIN_PIN && clean === String(ADMIN_PIN)) return true;
   try {
     const snap = await getDoc(doc(db, 'adminPins', clean));
     return snap.exists();

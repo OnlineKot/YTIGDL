@@ -18,9 +18,13 @@ export const firebaseConfig = {
 // Limit darmowych pobrań (na konto ORAZ na adres IP) zanim wymagany jest kod PRO.
 export const FREE_DOWNLOAD_LIMIT = 5;
 
-// Dostęp do panelu admina jest ukryty i chroniony PIN-em.
-// PIN NIE jest w kodzie — to ID dokumentu w kolekcji `adminPins` w Firestore.
-// Ustaw go ręcznie w konsoli Firebase (dokument adminPins/<twój-pin>) — reguły masz własne.
+// ════════════════════════════════════════════════════════════
+//  PIN / HASŁO DO PANELU ADMINA — zmień tutaj.
+//  To jest wyraźna zmienna mówiąca, jaki jest PIN do wejścia w panel
+//  (5× kliknięcie w „DL" w stopce → wpisz ten PIN).
+//  Działa od razu. Dodatkowo akceptowane są też PIN-y z kolekcji `adminPins`.
+export const ADMIN_PIN = '6412';
+// ════════════════════════════════════════════════════════════
 
 // ── Serwis pobierania mediów ──────────────────────────────────
 // GitHub Pages nie pobierze pliku samodzielnie (brak backendu/yt-dlp),
