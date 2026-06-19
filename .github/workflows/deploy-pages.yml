@@ -28,10 +28,15 @@ jobs:
       - name: Konfiguracja Pages
         uses: actions/configure-pages@v5
 
-      - name: Wyślij statyczny frontend (folder public/)
+      - name: Przygotuj artefakt (bez .git/.github)
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' ./ _site/
+
+      - name: Wyślij statyczny frontend
         uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: _site
 
       - name: Deploy
         id: deployment
