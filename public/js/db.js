@@ -7,12 +7,14 @@ import {
 import { db } from './firebase.js';
 import { FREE_DOWNLOAD_LIMIT } from './config.js';
 
-// Sprawdza, czy użytkownik jest adminem — na podstawie kolekcji `admins` w Firestore
-// (ID dokumentu = e-mail). Dzięki temu żaden adres nie jest zaszyty w kodzie.
-export async function isAdmin(user) {
-  if (!user?.email) return false;
+// Weryfikacja PIN-u admina. PIN NIE jest w kodzie — to ID dokumentu w kolekcji `adminPins`.
+// Aby ustawić PIN: w konsoli Firestore utwórz dokument adminPins/<twój-pin> (może być pusty).
+// Trik: poprawny PIN trzeba znać, żeby odczytać dokument po ID — nie da się go wylistować.
+export async function verifyPin(pin) {
+  const clean = String(pin || '').trim();
+  if (!clean) return false;
   try {
-    const snap = await getDoc(doc(db, 'admins', user.email.toLowerCase()));
+    const snap = await getDoc(doc(db, 'adminPins', clean));
     return snap.exists();
   } catch {
     return false;

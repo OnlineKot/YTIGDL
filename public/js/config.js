@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  YTIGDL — konfiguracja statyczna (działa na GitHub Pages, bez Node).
 //  Wszystkie wartości tutaj są PUBLICZNE i bezpieczne do umieszczenia w repo.
-//  Prawdziwe bezpieczeństwo zapewniają reguły Firestore (firestore.rules).
+//  Prawdziwe bezpieczeństwo zapewniają Twoje własne reguły Firestore (zarządzane w Firebase).
 // ─────────────────────────────────────────────────────────────
 
 // Konfiguracja Firebase Web SDK (projekt: ytigdl-api).
@@ -18,9 +18,9 @@ export const firebaseConfig = {
 // Limit darmowych pobrań (na konto ORAZ na adres IP) zanim wymagany jest kod PRO.
 export const FREE_DOWNLOAD_LIMIT = 5;
 
-// Administratorzy NIE są zapisani w kodzie — trzymamy ich w Firebase (Firestore),
-// w kolekcji `admins` (ID dokumentu = e-mail admina). Patrz firestore.rules.
-// Aby nadać komuś admina: w konsoli Firestore utwórz dokument admins/<email>.
+// Dostęp do panelu admina jest ukryty i chroniony PIN-em.
+// PIN NIE jest w kodzie — to ID dokumentu w kolekcji `adminPins` w Firestore.
+// Ustaw go ręcznie w konsoli Firebase (dokument adminPins/<twój-pin>) — reguły masz własne.
 
 // ── Serwis pobierania mediów ──────────────────────────────────
 // GitHub Pages nie pobierze pliku samodzielnie (brak backendu/yt-dlp),

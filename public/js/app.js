@@ -3,7 +3,7 @@ import {
   resendVerification, sendPhoneCode, resetRecaptcha, logout, track,
 } from './firebase.js';
 import {
-  isAdmin, ensureUsage, getStatus, canDownload,
+  verifyPin, ensureUsage, getStatus, canDownload,
   incrementUsage, incrementIpUsage, activateLicense, logEvent,
 } from './db.js';
 import { detectPlatform, isSupportedUrl, triggerDownload } from './download.js';
@@ -47,14 +47,12 @@ async function renderUser(user) {
     $('userEmail').textContent = user.email || user.phoneNumber || 'Konto';
     $('userAvatar').src = user.photoURL ||
       `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || user.phoneNumber || 'YT')}`;
-    isAdmin(user).then((a) => $('adminLink').classList.toggle('hidden', !a)).catch(() => {});
     try { await ensureUsage(user); } catch { /* reguły mogą blokować przed weryfikacją */ }
     refreshStatus();
     if (!isVerified(user)) toast('Potwierdź adres e-mail — sprawdź skrzynkę.', 'error');
   } else {
     chip.classList.add('hidden');
     $('loginBtn').classList.remove('hidden');
-    $('adminLink').classList.add('hidden');
     $('usageBar').classList.add('hidden');
   }
 }
@@ -270,6 +268,39 @@ $('activateProBtn').addEventListener('click', async () => {
     setTimeout(() => closeModal('proModal'), 1500);
   } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
 });
+
+// ── Ukryte wejście do panelu admina (PIN) ──────────────────
+// Sekret: 5 kliknięć w "DL" w stopce w ciągu 1,5 s otwiera modal PIN.
+let secretClicks = 0;
+let secretTimer = null;
+$('secretSpot')?.addEventListener('click', () => {
+  secretClicks++;
+  clearTimeout(secretTimer);
+  secretTimer = setTimeout(() => (secretClicks = 0), 1500);
+  if (secretClicks >= 5) { secretClicks = 0; $('pinInput').value = ''; $('pinMsg').textContent = ''; openModal('pinModal'); $('pinInput').focus(); }
+});
+
+async function submitPin() {
+  const pin = $('pinInput').value.trim();
+  const msg = $('pinMsg');
+  if (!pin) { msg.className = 'msg error'; msg.textContent = 'Wpisz PIN.'; return; }
+  const btn = $('pinSubmit');
+  btn.disabled = true;
+  try {
+    if (await verifyPin(pin)) {
+      sessionStorage.setItem('ytigdl_admin', '1');
+      location.href = 'admin.html';
+    } else {
+      msg.className = 'msg error'; msg.textContent = 'Błędny PIN.';
+    }
+  } catch (e) {
+    msg.className = 'msg error'; msg.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+$('pinSubmit').addEventListener('click', submitPin);
+$('pinInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') submitPin(); });
 
 // ── Start ──────────────────────────────────────────────────
 watchAuth(renderUser);

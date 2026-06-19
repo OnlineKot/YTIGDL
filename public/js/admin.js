@@ -1,5 +1,10 @@
 import { watchAuth, loginGoogle, logout } from './firebase.js';
-import { isAdmin, createLicense, listLicenses, setLicenseStatus, listUsers, listEvents } from './db.js';
+import { createLicense, listLicenses, setLicenseStatus, listUsers, listEvents } from './db.js';
+
+// Wejście tylko po poprawnym PIN-ie (ustawionym na stronie głównej). Inaczej cicho odsyłamy.
+if (sessionStorage.getItem('ytigdl_admin') !== '1') {
+  location.replace('index.html');
+}
 
 const $ = (id) => document.getElementById(id);
 let currentUser = null;
@@ -21,28 +26,29 @@ function fmtTime(at) {
 }
 
 $('googleBtn').addEventListener('click', () => loginGoogle().catch((e) => toast(e.message, 'error')));
-$('logoutBtn').addEventListener('click', async () => { await logout(); location.reload(); });
+$('logoutBtn').addEventListener('click', async () => {
+  sessionStorage.removeItem('ytigdl_admin');
+  await logout();
+  location.replace('index.html');
+});
 
-async function onUser(user) {
+function onUser(user) {
   currentUser = user;
+  // PIN już zweryfikowany (inaczej nie bylibyśmy na tej stronie).
+  // Logowanie służy tylko do zapisu w Firestore (jeśli wymagają tego Twoje reguły).
   if (!user) {
     $('gate').classList.remove('hidden');
     $('panel').classList.add('hidden');
     $('userChip').classList.add('hidden');
+    $('gateMsg').textContent = 'Zaloguj się, aby zarządzać licencjami.';
     return;
   }
   $('userEmail').textContent = user.email || user.uid;
   $('userAvatar').src = user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || 'YT')}`;
   $('userChip').classList.remove('hidden');
-  if (await isAdmin(user)) {
-    $('gate').classList.add('hidden');
-    $('panel').classList.remove('hidden');
-    loadAll();
-  } else {
-    $('gate').classList.remove('hidden');
-    $('panel').classList.add('hidden');
-    $('gateMsg').textContent = `Konto ${user.email || ''} nie ma uprawnień administratora.`;
-  }
+  $('gate').classList.add('hidden');
+  $('panel').classList.remove('hidden');
+  loadAll();
 }
 
 async function loadAll() { loadLicenses(); loadUsers(); loadEvents(); }

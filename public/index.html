@@ -20,7 +20,6 @@
     <div class="brand"><span class="dot"></span> YTIG<span class="gradient">DL</span></div>
     <div class="nav-actions">
       <button class="btn btn-ghost" id="proBtn">Mam kod <span class="gradient">PRO</span></button>
-      <a class="btn btn-ghost hidden" id="adminLink" href="admin.html">Panel admina</a>
       <button class="btn btn-primary" id="loginBtn">Zaloguj się</button>
       <div class="user-chip hidden" id="userChip">
         <img id="userAvatar" alt="" />
@@ -103,7 +102,7 @@
   </section>
 
   <footer>
-    <div>© <span id="year"></span> YTIG<span class="gradient">DL</span> — pobierz wszystko.</div>
+    <div>© <span id="year"></span> YTIG<span class="gradient" id="secretSpot" style="cursor:default">DL</span> — pobierz wszystko.</div>
     <div>Używaj zgodnie z prawem autorskim i regulaminami platform.</div>
   </footer>
 
@@ -155,6 +154,18 @@
       <input class="input" id="proInput" type="text" placeholder="YTIG-XXXX-XXXX-XXXX" />
       <button class="btn btn-primary btn-block" id="activateProBtn">Aktywuj <span class="gradient">PRO</span></button>
       <div class="msg" id="proMsg"></div>
+    </div>
+  </div>
+
+  <!-- Ukryty modal PIN (wejście do panelu admina) -->
+  <div class="modal-backdrop" id="pinModal">
+    <div class="modal">
+      <button class="modal-close" data-close>&times;</button>
+      <h2>Dostęp <span class="gradient">admina</span></h2>
+      <p class="sub">Wpisz PIN, aby przejść do panelu.</p>
+      <input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" />
+      <button class="btn btn-primary btn-block" id="pinSubmit">Wejdź</button>
+      <div class="msg" id="pinMsg"></div>
     </div>
   </div>
 
