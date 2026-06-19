@@ -37,17 +37,10 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 
-/* Czyste, spokojne tło — bez kolorowych „kleksów". */
+/* Czyste, spokojne tło — bez kolorowych „kleksów" i bez poświaty na dole. */
 .bg-orbs, .orb { display: none; }
 .bg-grid { display: none; }
-
-/* Jedna subtelna kulka u dołu strony. */
-.floor-ball {
-  position: fixed; bottom: -180px; left: 50%; transform: translateX(-50%);
-  width: 380px; height: 380px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(139, 92, 255, 0.45), transparent 65%);
-  filter: blur(46px); z-index: -1; pointer-events: none;
-}
+.floor-ball { display: none; }
 
 /* ── Gradient (statyczny, używany oszczędnie) ─────────────── */
 .gradient {
