@@ -13,6 +13,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
   signOut,
   onAuthStateChanged,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -97,6 +99,27 @@ export async function loginEmail(email, password) {
 
 export async function resendVerification() {
   if (auth?.currentUser) await sendEmailVerification(auth.currentUser);
+}
+
+// ── Logowanie / weryfikacja telefonem (SMS) ────────────────
+let recaptchaVerifier = null;
+
+function ensureRecaptcha(containerId) {
+  if (recaptchaVerifier) return recaptchaVerifier;
+  recaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
+  return recaptchaVerifier;
+}
+
+// Wysyła SMS z kodem. Zwraca obiekt potwierdzenia (z metodą .confirm(kod)).
+export async function sendPhoneCode(phoneNumber, containerId = 'recaptcha-container') {
+  const verifier = ensureRecaptcha(containerId);
+  return signInWithPhoneNumber(auth, phoneNumber, verifier);
+}
+
+// Resetuje reCAPTCHA (np. po błędzie, by spróbować ponownie).
+export function resetRecaptcha() {
+  try { recaptchaVerifier?.clear(); } catch { /* ignoruj */ }
+  recaptchaVerifier = null;
 }
 
 export async function logout() {

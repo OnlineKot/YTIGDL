@@ -8,6 +8,8 @@ import {
   registerEmail,
   loginEmail,
   resendVerification,
+  sendPhoneCode,
+  resetRecaptcha,
   logout,
   track,
 } from './firebase.js';
@@ -118,13 +120,17 @@ $('microsoftBtn').addEventListener('click', async () => {
   catch (e) { $('authMsg').className = 'msg error'; $('authMsg').textContent = e.message; }
 });
 
-// Zakładki: logowanie / rejestracja
+// Zakładki: logowanie / rejestracja / telefon
 $('authTabs').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn) return;
   authMode = btn.dataset.tab;
   document.querySelectorAll('#authTabs button').forEach((b) => b.classList.toggle('active', b === btn));
-  $('emailAuthBtn').textContent = authMode === 'register' ? 'Załóż konto' : 'Zaloguj się';
+  const phone = authMode === 'phone';
+  $('emailFields').classList.toggle('hidden', phone);
+  $('phoneFields').classList.toggle('hidden', !phone);
+  $('authMsg').textContent = '';
+  if (!phone) $('emailAuthBtn').textContent = authMode === 'register' ? 'Załóż konto' : 'Zaloguj się';
 });
 
 $('emailAuthBtn').addEventListener('click', async () => {
@@ -168,9 +174,59 @@ function mapAuthError(code) {
     'auth/user-not-found': 'Nie ma takiego konta.',
     'auth/wrong-password': 'Nieprawidłowe hasło.',
     'auth/popup-closed-by-user': 'Zamknięto okno logowania.',
+    'auth/invalid-phone-number': 'Nieprawidłowy numer telefonu.',
+    'auth/missing-phone-number': 'Podaj numer telefonu.',
+    'auth/invalid-verification-code': 'Nieprawidłowy kod SMS.',
+    'auth/code-expired': 'Kod SMS wygasł — wyślij nowy.',
+    'auth/too-many-requests': 'Za dużo prób. Spróbuj później.',
+    'auth/quota-exceeded': 'Przekroczono limit SMS. Spróbuj później.',
   };
   return map[code];
 }
+
+// ── Logowanie telefonem (SMS) ──────────────────────────────
+let phoneConfirmation = null;
+
+$('sendCodeBtn').addEventListener('click', async () => {
+  const phone = $('phoneInput').value.trim();
+  const msg = $('authMsg');
+  if (!/^\+\d{8,15}$/.test(phone)) {
+    msg.className = 'msg error';
+    msg.textContent = 'Podaj numer w formacie międzynarodowym, np. +48600000000.';
+    return;
+  }
+  const btn = $('sendCodeBtn');
+  btn.disabled = true; btn.textContent = 'Wysyłam…';
+  try {
+    phoneConfirmation = await sendPhoneCode(phone);
+    msg.className = 'msg ok';
+    msg.textContent = 'Wysłaliśmy kod SMS. Wpisz go poniżej.';
+    $('codeInput').classList.remove('hidden');
+    $('verifyCodeBtn').classList.remove('hidden');
+    $('codeInput').focus();
+  } catch (e) {
+    resetRecaptcha();
+    msg.className = 'msg error';
+    msg.textContent = mapAuthError(e.code) || e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Wyślij kod SMS';
+  }
+});
+
+$('verifyCodeBtn').addEventListener('click', async () => {
+  const code = $('codeInput').value.trim();
+  const msg = $('authMsg');
+  if (!phoneConfirmation) { msg.className = 'msg error'; msg.textContent = 'Najpierw wyślij kod SMS.'; return; }
+  if (code.length < 6) { msg.className = 'msg error'; msg.textContent = 'Kod ma 6 cyfr.'; return; }
+  try {
+    const cred = await phoneConfirmation.confirm(code);
+    await afterLogin(cred.user, 'phone');
+    toast('Zalogowano przez telefon!', 'ok');
+  } catch (e) {
+    msg.className = 'msg error';
+    msg.textContent = mapAuthError(e.code) || 'Nieprawidłowy kod SMS.';
+  }
+});
 
 // ── Wybór jakości ──────────────────────────────────────────
 $('qualitySeg').addEventListener('click', (e) => {

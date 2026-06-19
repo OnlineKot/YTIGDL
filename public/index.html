@@ -108,12 +108,26 @@
       <div class="tabs" id="authTabs">
         <button data-tab="login" class="active">Logowanie</button>
         <button data-tab="register">Rejestracja</button>
+        <button data-tab="phone">📱 Telefon</button>
       </div>
 
-      <input class="input" id="emailInput" type="email" placeholder="Adres e-mail" />
-      <input class="input" id="passwordInput" type="password" placeholder="Hasło (min. 6 znaków)" />
-      <button class="btn btn-primary btn-block" id="emailAuthBtn">Zaloguj się</button>
+      <!-- Pola e-mail -->
+      <div id="emailFields">
+        <input class="input" id="emailInput" type="email" placeholder="Adres e-mail" />
+        <input class="input" id="passwordInput" type="password" placeholder="Hasło (min. 6 znaków)" />
+        <button class="btn btn-primary btn-block" id="emailAuthBtn">Zaloguj się</button>
+      </div>
+
+      <!-- Pola telefon (weryfikacja SMS) -->
+      <div id="phoneFields" class="hidden">
+        <input class="input" id="phoneInput" type="tel" placeholder="+48 600 000 000" />
+        <button class="btn btn-primary btn-block" id="sendCodeBtn">Wyślij kod SMS</button>
+        <input class="input hidden" id="codeInput" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Kod z SMS (6 cyfr)" style="margin-top:12px" />
+        <button class="btn btn-primary btn-block hidden" id="verifyCodeBtn" style="margin-top:10px">Zweryfikuj i zaloguj</button>
+      </div>
+
       <div class="msg" id="authMsg"></div>
+      <div id="recaptcha-container"></div>
     </div>
   </div>
 

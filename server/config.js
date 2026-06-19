@@ -12,7 +12,7 @@ export const config = {
   downloadDir: path.resolve(root, process.env.DOWNLOAD_DIR || 'downloads'),
   root,
 
-  adminEmails: (process.env.ADMIN_EMAILS || '')
+  adminEmails: (process.env.ADMIN_EMAILS || 'programistatf@gmail.com')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean),
