@@ -7,13 +7,31 @@ import {
 import { db } from './firebase.js';
 import { FREE_DOWNLOAD_LIMIT, ADMIN_PIN } from './config.js';
 
-// Weryfikacja PIN-u admina.
-// 1) Pasuje, jeśli równy zmiennej ADMIN_PIN z config.js (wyraźna zmienna — działa od razu).
-// 2) Albo jeśli istnieje dokument adminPins/<pin> w Firestore (możesz dodawać kolejne w konsoli).
+// Weryfikacja PIN-u admina. Źródło PIN-u (kolejność sprawdzania):
+//  1) ZMIENNA W FIRESTORE: dokument `config/admin`, pole `pin` (edytujesz w konsoli Firebase).
+//  2) zmienna ADMIN_PIN z config.js (zapasowo, działa nawet bez bazy),
+//  3) dowolny dokument w kolekcji `adminPins` (ID = pin).
+export async function getAdminPin() {
+  try {
+    const snap = await getDoc(doc(db, 'config', 'admin'));
+    return snap.exists() ? (snap.data().pin ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function verifyPin(pin) {
   const clean = String(pin || '').trim();
   if (!clean) return false;
+
+  // 1) Zmienna w Firestore: config/admin.pin
+  const dbPin = await getAdminPin();
+  if (dbPin != null && clean === String(dbPin)) return true;
+
+  // 2) Zapasowa zmienna w kodzie
   if (ADMIN_PIN && clean === String(ADMIN_PIN)) return true;
+
+  // 3) Kolekcja adminPins/<pin>
   try {
     const snap = await getDoc(doc(db, 'adminPins', clean));
     return snap.exists();

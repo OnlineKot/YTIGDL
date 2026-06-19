@@ -33,6 +33,7 @@ $('seedBtn').addEventListener('click', async () => {
   // Każdy wpis: [kolekcja, ID dokumentu, dane]
   const items = [
     ['admins', user.email.toLowerCase(), { email: user.email.toLowerCase(), createdAt: stamp }],
+    ['config', 'admin', { pin, updatedAt: stamp }],
     ['adminPins', pin, { createdAt: stamp }],
     ['usage', '__init', { _seed: true, createdAt: stamp }],
     ['ipUsage', '__init', { _seed: true, createdAt: stamp }],
