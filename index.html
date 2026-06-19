@@ -3,26 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YTIGDL — pobierz dosłownie wszystko z Instagrama i YouTube</title>
-  <meta name="description" content="YTIGDL — pobierz dosłownie wszystko z Instagrama, YouTube i więcej. Najwyższa jakość, plan PRO bez limitów." />
+  <title>YTIGDL — pobierz wszystko z Instagrama i YouTube</title>
+  <meta name="description" content="YTIGDL — wklej link i pobierz wszystko z Instagrama, YouTube i więcej. Najwyższa jakość, plan PRO bez limitów." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;850&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <div class="bg-orbs"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
-  <div class="bg-grid"></div>
-
   <nav class="nav">
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="brand"><span class="dot"></span> <a href="/"><span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span></a></div>
-      <div class="nav-links">
-        <a href="download/">Pobieranie</a>
-        <a href="history/">Historia</a>
-      </div>
-    </div>
+    <a href="/" class="brand">
+      <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></span>
+      <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span>
+    </a>
     <div class="nav-actions">
+      <button class="btn btn-ghost" id="proBtn">Mam kod <span class="gradient">PRO</span></button>
       <button class="btn btn-primary" id="loginBtn">Zaloguj się</button>
       <div class="user-chip hidden" id="userChip">
         <img id="userAvatar" alt="" />
@@ -32,12 +27,106 @@
     </div>
   </nav>
 
-  <header class="hero">
-    <div class="badge rise d1">⚡ Najwyższa jakość &nbsp;•&nbsp; plan <span class="gradient" style="font-weight:800">PRO</span></div>
-    <h1 class="rise d2">Pobierz dosłownie <span class="gradient">wszystko</span><br />z Instagrama, YouTube i&nbsp;więcej</h1>
-    <p class="lead rise d3">Wklej link, wybierz format i jakość — resztą zajmiemy się my. Filmy, audio, rolki, posty. Pierwsze 5 pobrań gratis.</p>
+  <header class="hero" style="padding-top:clamp(34px,6vw,64px)">
+    <h1 class="rise d1">Pobierz dosłownie <span class="gradient">wszystko</span><br />z Instagrama, YouTube i&nbsp;więcej</h1>
+    <p class="lead rise d2">Wklej link, a my ściągniemy to za Ciebie — film, audio, rolkę albo post. Bez reklam, bez kombinowania. 5 pobrań dziennie gratis.</p>
 
-    <div class="platforms rise d3">
+    <!-- DOWNLOADER NA GÓRZE -->
+    <section class="downloader rise d3">
+      <div class="input-row">
+        <input class="input" id="urlInput" type="url" placeholder="Wklej tutaj link z YouTube lub Instagrama…" />
+        <button class="btn btn-primary" id="downloadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Pobierz
+        </button>
+      </div>
+
+      <div class="options">
+        <div class="opt">
+          <label>Format</label>
+          <select id="optFormat">
+            <option value="mp4" selected>🎬 Wideo (MP4)</option>
+            <option value="webm">🎬 Wideo (WebM)</option>
+            <option value="audio">🎧 Audio (MP3)</option>
+            <option value="mute">🔇 Wideo bez dźwięku</option>
+          </select>
+        </div>
+        <div class="opt" id="qualityWrap">
+          <label>Jakość wideo</label>
+          <select id="optQuality">
+            <option value="max" selected>Najwyższa dostępna</option>
+            <option value="4320">8K (4320p)</option>
+            <option value="2160">4K (2160p)</option>
+            <option value="1440">2K (1440p)</option>
+            <option value="1080">Full HD (1080p)</option>
+            <option value="720">HD (720p)</option>
+            <option value="480">480p</option>
+            <option value="360">360p</option>
+          </select>
+        </div>
+        <div class="opt" id="codecWrap">
+          <label>Kodek wideo</label>
+          <select id="optCodec">
+            <option value="h264" selected>H.264 (najzgodniejszy)</option>
+            <option value="av1">AV1 (mniejszy plik)</option>
+            <option value="vp9">VP9</option>
+          </select>
+        </div>
+        <div class="opt hidden" id="audioWrap">
+          <label>Jakość audio (MP3)</label>
+          <select id="optAudio">
+            <option value="320" selected>320 kbps</option>
+            <option value="256">256 kbps</option>
+            <option value="192">192 kbps</option>
+            <option value="128">128 kbps</option>
+          </select>
+        </div>
+      </div>
+
+      <details class="adv">
+        <summary>Więcej opcji <span class="badge-soft">tytuł · autor · przycinanie</span></summary>
+        <div class="adv-body">
+          <div class="options" style="margin-top:14px">
+            <div class="opt">
+              <label>Tytuł / nazwa pliku</label>
+              <input id="optTitle" type="text" placeholder="np. Moje wideo" />
+              <span class="hint">Zmienia nazwę zapisywanego pliku.</span>
+            </div>
+            <div class="opt">
+              <label>Autor</label>
+              <input id="optAuthor" type="text" placeholder="YTIGDL" value="YTIGDL" />
+              <span class="hint">Zapisywany w Twojej historii pobrań.</span>
+            </div>
+            <div class="opt">
+              <label>Styl nazwy</label>
+              <select id="optFilenameStyle">
+                <option value="pretty" selected>Czytelny</option>
+                <option value="basic">Podstawowy</option>
+                <option value="classic">Klasyczny</option>
+                <option value="nerdy">Techniczny</option>
+              </select>
+            </div>
+            <div class="opt span-2">
+              <label>Przytnij (mm:ss) <span class="badge-soft">eksperymentalne</span></label>
+              <div class="trim-row">
+                <input id="optTrimStart" type="text" inputmode="numeric" placeholder="od 00:00" />
+                <input id="optTrimEnd" type="text" inputmode="numeric" placeholder="do 01:30" />
+              </div>
+              <span class="hint">Zapisywane w historii; pełne cięcie pliku wymaga zaplecza (wkrótce).</span>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="usage-bar hidden" id="usageBar">
+        <span id="usageText">—</span>
+        <div class="usage-track"><div class="usage-fill" id="usageFill"></div></div>
+      </div>
+
+      <div class="result" id="result"></div>
+    </section>
+
+    <div class="platforms rise d4">
       <span class="plat">
         <svg viewBox="0 0 24 24"><path fill="#FF0000" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8Z"/><path fill="#fff" d="M9.6 15.5V8.5l6.3 3.5-6.3 3.5Z"/></svg>
         YouTube
@@ -48,47 +137,44 @@
       </span>
       <span class="plat soon">+ TikTok, X, Facebook wkrótce</span>
     </div>
-
-    <div class="cta-row rise d4">
-      <a class="btn btn-primary" href="download/" style="padding:15px 26px;font-size:1rem">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Pobierz teraz
-      </a>
-      <a class="btn btn-ghost" href="history/" style="padding:15px 26px">Moja historia</a>
-    </div>
   </header>
 
-  <div class="section-title">
-    <h2>Dlaczego <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span>?</h2>
-    <p>Szybko, ładnie i bez kombinowania.</p>
-  </div>
   <section class="features">
     <div class="feature">
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
-      <h3>YouTube + Instagram</h3>
-      <p>Filmy, Shorts, rolki, posty i więcej. Kolejne platformy w drodze.</p>
+      <h3>Prosto i szybko</h3>
+      <p>Wklejasz link, klikasz „Pobierz" — gotowe. Bez instalacji i rejestracji aplikacji.</p>
     </div>
     <div class="feature">
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/><circle cx="12" cy="12" r="3"/></svg></div>
-      <h3>Wiele opcji i jakości</h3>
-      <p>Format MP4/MP3/WebM, kodek, bitrate, własna nazwa pliku, przycinanie.</p>
+      <h3>Twoje ustawienia</h3>
+      <p>Format, jakość, kodek, własna nazwa pliku, autor, a nawet przycinanie.</p>
     </div>
     <div class="feature">
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2"/></svg></div>
       <h3>Najwyższa jakość</h3>
-      <p>Aż do 4K / 8K i audio 320 kbps. Plan <span class="gradient" style="font-weight:700">PRO</span> bez limitów.</p>
-    </div>
-    <div class="feature">
-      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
-      <h3>Historia pobrań</h3>
-      <p>Wszystkie Twoje pobrania w jednym miejscu, zsynchronizowane z kontem.</p>
+      <p>Aż do 4K/8K i audio 320 kbps. Plan <span class="gradient" style="font-weight:700">PRO</span> zdejmuje limit.</p>
     </div>
   </section>
 
   <footer>
-    <div>© <span id="year"></span> <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL" id="secretSpot">DL</span></span> — pobierz wszystko.</div>
-    <div>Używaj zgodnie z prawem autorskim i regulaminami platform.</div>
+    <div>© <span id="year"></span> <span class="logo" style="font-size:1.05rem"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL" id="secretSpot">DL</span></span> — pobierz wszystko.</div>
+    <div><a href="history/" style="color:var(--muted)">Historia</a> &nbsp;·&nbsp; Używaj zgodnie z prawem autorskim i regulaminami platform.</div>
   </footer>
+
+  <div class="floor-ball"></div>
+
+  <!-- Modal kodu PRO -->
+  <div class="modal-backdrop" id="proModal">
+    <div class="modal">
+      <button class="modal-close" data-close-pro>&times;</button>
+      <h2>Aktywuj plan <span class="gradient">PRO</span></h2>
+      <p class="sub">Wpisz kod licencyjny, aby pobierać bez limitów.</p>
+      <input class="input" id="proInput" type="text" placeholder="YTIG-XXXX-XXXX-XXXX" />
+      <button class="btn btn-primary btn-block" id="activateProBtn">Aktywuj <span class="gradient">PRO</span></button>
+      <div class="msg" id="proMsg"></div>
+    </div>
+  </div>
 
   <!-- Ukryty modal PIN (wejście do panelu admina) -->
   <div class="modal-backdrop" id="pinModal">
@@ -103,6 +189,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <script type="module" src="js/landing.js"></script>
+  <script type="module" src="js/downloader.js"></script>
 </body>
 </html>

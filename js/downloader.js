@@ -1,12 +1,13 @@
 import { initAuthUI, getUser, isVerified, openLogin, toast } from './ui.js';
 import { track } from './firebase.js';
 import {
-  getStatus, canDownload, incrementUsage, incrementIpUsage,
-  activateLicense, logEvent, addHistory,
+  getStatus, canDownload, incrementUsage, incrementIpUsage, incrementDeviceDaily,
+  activateLicense, logEvent, addHistory, verifyPin,
 } from './db.js';
 import { detectPlatform, isSupportedUrl, triggerDownload } from './download.js';
 
 const $ = (id) => document.getElementById(id);
+if ($('year')) $('year').textContent = new Date().getFullYear();
 
 function openModal(id) { $(id).classList.add('show'); }
 function closeModal(id) { $(id).classList.remove('show'); }
@@ -50,7 +51,7 @@ async function refreshStatus(user) {
       $('usageText').textContent = '✨ Plan PRO — pobierasz bez limitów';
       $('usageFill').style.width = '100%';
     } else {
-      $('usageText').textContent = `Darmowe pobrania: ${s.used}/${s.limit}`;
+      $('usageText').textContent = `Dziś na tym urządzeniu: ${s.used}/${s.limit} darmowych pobrań`;
       $('usageFill').style.width = `${Math.min(100, (s.used / s.limit) * 100)}%`;
     }
   } catch { $('usageBar').classList.add('hidden'); }
@@ -78,10 +79,13 @@ async function handleDownload() {
   catch (e) { toast('Błąd sprawdzania limitu: ' + e.message, 'error'); return; }
 
   if (!eligibility.allowed) {
+    const reasons = {
+      device_limit: '🔒 To urządzenie wykorzystało dziś 5 darmowych pobrań. Wróć jutro albo wpisz kod PRO.',
+      ip_limit: '🔒 Z tej sieci wykorzystano dziś 5 darmowych pobrań. Wróć jutro albo wpisz kod PRO.',
+      account_limit: '🔒 Wykorzystałeś dziś 5 darmowych pobrań. Wróć jutro albo wpisz kod PRO.',
+    };
     result.className = 'result show error';
-    result.innerHTML = eligibility.reason === 'ip_limit'
-      ? '🔒 Z tego adresu IP wykorzystano 5 darmowych pobrań. Wpisz kod PRO, aby kontynuować.'
-      : '🔒 Wykorzystano 5 darmowych pobrań na koncie. Wpisz kod PRO, aby kontynuować.';
+    result.innerHTML = reasons[eligibility.reason] || reasons.device_limit;
     openModal('proModal');
     return;
   }
@@ -96,6 +100,7 @@ async function handleDownload() {
     if (!eligibility.pro) {
       await incrementUsage(user.uid, platform);
       await incrementIpUsage(platform);
+      await incrementDeviceDaily(platform);
     }
     const record = {
       type: 'download', platform, url,
@@ -143,6 +148,30 @@ $('activateProBtn').addEventListener('click', async () => {
     setTimeout(() => closeModal('proModal'), 1400);
   } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
 });
+
+// ── Ukryte wejście do panelu admina (PIN) — tylko jeśli jest na stronie ──
+const secret = $('secretSpot');
+if (secret && $('pinModal')) {
+  let clicks = 0, timer = null;
+  secret.addEventListener('click', () => {
+    clicks++; clearTimeout(timer); timer = setTimeout(() => (clicks = 0), 1500);
+    if (clicks >= 5) { clicks = 0; $('pinInput').value = ''; $('pinMsg').textContent = ''; openModal('pinModal'); $('pinInput').focus(); }
+  });
+  document.querySelectorAll('[data-close-pin]').forEach((b) => b.addEventListener('click', () => closeModal('pinModal')));
+  $('pinModal').addEventListener('click', (e) => { if (e.target.id === 'pinModal') closeModal('pinModal'); });
+  const submitPin = async () => {
+    const pin = $('pinInput').value.trim(); const msg = $('pinMsg');
+    if (!pin) { msg.className = 'msg error'; msg.textContent = 'Wpisz PIN.'; return; }
+    const b = $('pinSubmit'); b.disabled = true;
+    try {
+      if (await verifyPin(pin)) { sessionStorage.setItem('ytigdl_admin', '1'); location.href = 'admin/'; }
+      else { msg.className = 'msg error'; msg.textContent = 'Błędny PIN.'; }
+    } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
+    finally { b.disabled = false; }
+  };
+  $('pinSubmit').addEventListener('click', submitPin);
+  $('pinInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') submitPin(); });
+}
 
 // ── Start ──────────────────────────────────────────────────
 initAuthUI({ onUser: (user) => refreshStatus(user) });

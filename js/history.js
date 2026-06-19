@@ -23,7 +23,7 @@ async function render(user) {
   try {
     const list = await listHistory(user.uid, 100);
     if (!list.length) {
-      area.innerHTML = '<div class="history-empty">Brak pobrań. Zacznij na stronie <a href="../download/" class="gradient">Pobieranie</a>.</div>';
+      area.innerHTML = '<div class="history-empty">Brak pobrań. Zacznij na <a href="../" class="gradient">stronie głównej</a>.</div>';
       return;
     }
     area.innerHTML = list.map((h) => {

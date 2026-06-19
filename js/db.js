@@ -2,7 +2,7 @@
 import {
   doc, getDoc, setDoc, updateDoc,
   collection, getDocs, query, orderBy, limit as qLimit,
-  arrayUnion, increment, serverTimestamp,
+  arrayUnion, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { db } from './firebase.js';
 import { FREE_DOWNLOAD_LIMIT } from './config.js';
@@ -38,6 +38,40 @@ export async function getIpHash() {
   return cachedIpHash;
 }
 
+// Dzisiejsza data (YYYY-MM-DD) — limity resetują się co dobę.
+function today() { return new Date().toISOString().slice(0, 10); }
+function dailyCountOf(d) { return d && d.dailyDate === today() ? (d.dailyCount || 0) : 0; }
+
+// ── DEVICE LOCK (identyfikator urządzenia + limit dzienny) ──
+function getDeviceId() {
+  let id = null;
+  try { id = localStorage.getItem('ytigdl_device'); } catch {}
+  if (!id) {
+    id = crypto.randomUUID();
+    try { localStorage.setItem('ytigdl_device', id); } catch {}
+  }
+  return id;
+}
+
+export async function getDeviceDaily() {
+  const id = getDeviceId();
+  const snap = await getDoc(doc(db, 'deviceUsage', id));
+  return dailyCountOf(snap.exists() ? snap.data() : null);
+}
+
+export async function incrementDeviceDaily(platform) {
+  const id = getDeviceId();
+  const ref = doc(db, 'deviceUsage', id);
+  const snap = await getDoc(ref);
+  const d = snap.exists() ? snap.data() : {};
+  const count = d.dailyDate === today() ? (d.dailyCount || 0) + 1 : 1;
+  await setDoc(ref, {
+    deviceId: id, dailyDate: today(), dailyCount: count,
+    [platform]: (d[platform] || 0) + 1, total: (d.total || 0) + 1,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
 // ── USAGE (na konto) ───────────────────────────────────────
 export async function getUsage(uid) {
   const snap = await getDoc(doc(db, 'usage', uid));
@@ -58,9 +92,14 @@ export async function ensureUsage(user) {
 }
 
 export async function incrementUsage(uid, platform) {
-  await updateDoc(doc(db, 'usage', uid), {
-    [platform]: increment(1), total: increment(1), updatedAt: serverTimestamp(),
-  });
+  const ref = doc(db, 'usage', uid);
+  const snap = await getDoc(ref);
+  const d = snap.exists() ? snap.data() : {};
+  const count = d.dailyDate === today() ? (d.dailyCount || 0) + 1 : 1;
+  await setDoc(ref, {
+    [platform]: (d[platform] || 0) + 1, total: (d.total || 0) + 1,
+    dailyDate: today(), dailyCount: count, updatedAt: serverTimestamp(),
+  }, { merge: true });
 }
 
 // ── USAGE (na adres IP) ────────────────────────────────────
@@ -72,11 +111,14 @@ export async function getIpUsage() {
 
 export async function incrementIpUsage(platform) {
   const ipHash = await getIpHash();
-  await setDoc(
-    doc(db, 'ipUsage', ipHash),
-    { ipHash, [platform]: increment(1), total: increment(1), updatedAt: serverTimestamp() },
-    { merge: true }
-  );
+  const ref = doc(db, 'ipUsage', ipHash);
+  const snap = await getDoc(ref);
+  const d = snap.exists() ? snap.data() : {};
+  const count = d.dailyDate === today() ? (d.dailyCount || 0) + 1 : 1;
+  await setDoc(ref, {
+    ipHash, [platform]: (d[platform] || 0) + 1, total: (d.total || 0) + 1,
+    dailyDate: today(), dailyCount: count, updatedAt: serverTimestamp(),
+  }, { merge: true });
 }
 
 // ── LICENCJE (kody PRO) ────────────────────────────────────
@@ -177,17 +219,19 @@ export async function listHistory(uid, max = 100) {
   return snap.docs.map((d) => d.data());
 }
 
-// ── Status limitów bieżącego użytkownika ───────────────────
+// ── Status limitów bieżącego użytkownika (dziennie, z device lock) ──
 export async function getStatus(user) {
   const usage = (await getUsage(user.uid)) || (await ensureUsage(user));
   const ipUsage = await getIpUsage();
   const pro = await userHasValidLicense(user.uid);
-  const accountUsed = usage.total || 0;
-  const ipUsed = ipUsage?.total || 0;
+  const accountUsed = dailyCountOf(usage);
+  const ipUsed = dailyCountOf(ipUsage);
+  const deviceUsed = await getDeviceDaily();
+  const used = Math.max(accountUsed, ipUsed, deviceUsed);
   return {
-    pro, limit: FREE_DOWNLOAD_LIMIT, accountUsed, ipUsed,
-    used: Math.max(accountUsed, ipUsed),
-    remaining: pro ? null : Math.max(0, FREE_DOWNLOAD_LIMIT - Math.max(accountUsed, ipUsed)),
+    pro, limit: FREE_DOWNLOAD_LIMIT, perDay: true,
+    accountUsed, ipUsed, deviceUsed, used,
+    remaining: pro ? null : Math.max(0, FREE_DOWNLOAD_LIMIT - used),
     licenseKey: usage.licenseKey || null,
   };
 }
@@ -195,6 +239,7 @@ export async function getStatus(user) {
 export async function canDownload(user) {
   if (await userHasValidLicense(user.uid)) return { allowed: true, pro: true };
   const s = await getStatus(user);
+  if (s.deviceUsed >= s.limit) return { allowed: false, pro: false, reason: 'device_limit' };
   if (s.accountUsed >= s.limit) return { allowed: false, pro: false, reason: 'account_limit' };
   if (s.ipUsed >= s.limit) return { allowed: false, pro: false, reason: 'ip_limit' };
   return { allowed: true, pro: false };

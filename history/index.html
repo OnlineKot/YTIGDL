@@ -14,13 +14,10 @@
   <div class="bg-grid"></div>
 
   <nav class="nav">
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="brand"><span class="dot"></span> <a href="../"><span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span></a></div>
-      <div class="nav-links">
-        <a href="../download/">Pobieranie</a>
-        <a href="./" class="active">Historia</a>
-      </div>
-    </div>
+    <a href="../" class="brand">
+      <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></span>
+      <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span>
+    </a>
     <div class="nav-actions">
       <button class="btn btn-primary" id="loginBtn">Zaloguj się</button>
       <div class="user-chip hidden" id="userChip">
@@ -39,6 +36,7 @@
     <div id="historyArea" class="history-list"></div>
   </main>
 
+  <div class="floor-ball"></div>
   <div class="toast" id="toast"></div>
   <script type="module" src="../js/history.js"></script>
 </body>
