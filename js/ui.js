@@ -200,17 +200,11 @@ function wireModal() {
     const btn = $('emailAuthBtn'); btn.disabled = true;
     try {
       if (authMode === 'register') {
-        await registerEmail(email, password);
-        msg.className = 'msg ok'; msg.textContent = 'Konto założone! Wysłaliśmy link aktywacyjny — potwierdź e-mail, aby pobierać.';
+        const u = await registerEmail(email, password);
         track('sign_up', { method: 'email' });
+        await afterLogin(u, 'email'); toast('Konto utworzone — witaj!', 'ok');
       } else {
         const u = await loginEmail(email, password);
-        if (!u.emailVerified) {
-          msg.className = 'msg error';
-          msg.innerHTML = 'Potwierdź adres e-mail. <a href="#" id="resendLink">Wyślij link ponownie</a>';
-          $('resendLink').addEventListener('click', async (ev) => { ev.preventDefault(); await resendVerification(); toast('Wysłano e-mail weryfikacyjny.', 'ok'); });
-          return;
-        }
         await afterLogin(u, 'email'); toast(`Cześć, ${u.email}!`, 'ok');
       }
     } catch (e) { showAuthError(e); }
@@ -256,7 +250,6 @@ async function handleAuth(user) {
     if ($('userEmail')) $('userEmail').textContent = user.email || user.phoneNumber || 'Konto';
     if ($('userAvatar')) $('userAvatar').src = user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || user.phoneNumber || 'YT')}`;
     try { await ensureUsage(user); } catch {}
-    if (!isVerified(user)) toast('Potwierdź adres e-mail — sprawdź skrzynkę.', 'error');
   } else {
     chip?.classList.add('hidden');
     $('loginBtn')?.classList.remove('hidden');

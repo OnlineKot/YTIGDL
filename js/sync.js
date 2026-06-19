@@ -8,6 +8,13 @@ const $ = (id) => document.getElementById(id);
 
 initAuthUI();
 
+$('copyRules')?.addEventListener('click', () => {
+  navigator.clipboard?.writeText($('tempRules').textContent).then(
+    () => toast('Reguły skopiowane — wklej w Firestore → Rules → Publish.', 'ok'),
+    () => toast('Nie udało się skopiować — zaznacz ręcznie.', 'error')
+  );
+});
+
 $('seedBtn').addEventListener('click', async () => {
   const user = getUser();
   const msg = $('seedMsg');
@@ -53,6 +60,6 @@ $('seedBtn').addEventListener('click', async () => {
     toast('Struktura zsynchronizowana ✅', 'ok');
   } else {
     msg.className = 'msg error';
-    msg.textContent = 'Część zapisów się nie udała — najpewniej reguły. Wklej tymczasowe reguły i spróbuj ponownie.';
+    msg.innerHTML = 'Część zapisów odrzucona (<code>permission-denied</code>) — najpierw wklej w Firestore <strong>tymczasowe reguły</strong> z sekcji powyżej (Publish), potem kliknij ponownie.';
   }
 });

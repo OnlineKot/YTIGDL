@@ -1,4 +1,4 @@
-import { initAuthUI, getUser, isVerified, openLogin, toast } from './ui.js';
+import { initAuthUI, getUser, openLogin, toast } from './ui.js';
 import { track } from './firebase.js';
 import {
   getStatus, canDownload, incrementUsage, incrementIpUsage, incrementDeviceDaily,
@@ -78,7 +78,6 @@ async function handleDownload() {
   if (!url) { toast('Wklej najpierw link.', 'error'); return; }
   if (!isSupportedUrl(url)) { toast('Obsługujemy linki z YouTube i Instagrama.', 'error'); return; }
   if (!user) { openLogin('register'); return; }
-  if (!isVerified(user)) { toast('Najpierw potwierdź adres e-mail.', 'error'); return; }
 
   const platform = detectPlatform(url);
   const opts = collectOptions();

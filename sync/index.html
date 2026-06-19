@@ -38,7 +38,7 @@
 
       <div class="opt" style="margin-bottom:16px">
         <label>Hasło do panelu admina</label>
-        <input id="pinSet" type="text" placeholder="ustaw dowolne hasło" />
+        <input id="pinSet" type="text" value="6412" placeholder="6412" />
         <span class="hint">Zapisze się w kolekcji <code>adminPins</code>. Hasło zmienisz sam w Firebase (dodaj/usuń dokument).</span>
       </div>
 
@@ -47,10 +47,10 @@
       <pre id="seedLog" style="margin-top:14px;font-size:.8rem;color:var(--muted);white-space:pre-wrap"></pre>
     </div>
 
-    <details class="adv" style="margin-top:18px">
-      <summary>Tymczasowe reguły na czas synchronizacji</summary>
+    <details class="adv" style="margin-top:18px" open>
+      <summary>1) Wklej TE reguły, zanim klikniesz „Synchronizuj"</summary>
       <div class="adv-body">
-        <pre style="font-size:.78rem;white-space:pre-wrap;color:#cfcfe6">rules_version = '2';
+        <pre id="tempRules" style="font-size:.78rem;white-space:pre-wrap;color:#cfcfe6">rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
@@ -58,7 +58,8 @@ service cloud.firestore {
     }
   }
 }</pre>
-        <p class="hint">Po synchronizacji przywróć docelowe reguły (te bezpieczne, które dostałeś).</p>
+        <button class="btn" id="copyRules" style="margin-top:8px">Skopiuj reguły</button>
+        <p class="hint">Firestore → Rules → wklej → Publish. Po synchronizacji wróć do reguł docelowych (bez weryfikacji maila).</p>
       </div>
     </details>
   </main>
