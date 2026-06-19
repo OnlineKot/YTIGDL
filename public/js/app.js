@@ -1,5 +1,5 @@
 import {
-  watchAuth, loginGoogle, loginMicrosoft, registerEmail, loginEmail,
+  watchAuth, loginGoogle, registerEmail, loginEmail,
   resendVerification, sendPhoneCode, resetRecaptcha, logout, track,
 } from './firebase.js';
 import {
@@ -32,7 +32,7 @@ document.querySelectorAll('.modal-backdrop').forEach((m) =>
 );
 
 function isVerified(user) {
-  // Konta telefon/Google/Microsoft są zweryfikowane; e-mail/hasło wymaga potwierdzenia.
+  // Konta telefon/Google są zweryfikowane; e-mail/hasło wymaga potwierdzenia.
   const isPassword = user.providerData?.[0]?.providerId === 'password';
   return !isPassword || user.emailVerified;
 }
@@ -89,10 +89,6 @@ $('logoutBtn').addEventListener('click', async () => { await logout(); toast('Wy
 
 $('googleBtn').addEventListener('click', async () => {
   try { const u = await loginGoogle(); await afterLogin(u, 'google'); toast(`Cześć, ${u.email}!`, 'ok'); }
-  catch (e) { showAuthError(e); }
-});
-$('microsoftBtn').addEventListener('click', async () => {
-  try { const u = await loginMicrosoft(); await afterLogin(u, 'microsoft'); toast(`Cześć, ${u.email}!`, 'ok'); }
   catch (e) { showAuthError(e); }
 });
 

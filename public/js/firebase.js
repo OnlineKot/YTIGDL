@@ -1,10 +1,9 @@
-// Inicjalizacja Firebase Web SDK + logowanie (Google / Microsoft / e-mail / telefon).
+// Inicjalizacja Firebase Web SDK + logowanie (Google / e-mail / telefon).
 // Działa w 100% w przeglądarce — idealne pod GitHub Pages.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
   getAuth,
   GoogleAuthProvider,
-  OAuthProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -50,13 +49,6 @@ export function watchAuth(callback) {
 
 export async function loginGoogle() {
   const cred = await signInWithPopup(auth, new GoogleAuthProvider());
-  return cred.user;
-}
-
-export async function loginMicrosoft() {
-  const provider = new OAuthProvider('microsoft.com');
-  provider.setCustomParameters({ prompt: 'select_account' });
-  const cred = await signInWithPopup(auth, provider);
   return cred.user;
 }
 

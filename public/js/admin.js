@@ -1,4 +1,4 @@
-import { watchAuth, loginGoogle, loginMicrosoft, logout } from './firebase.js';
+import { watchAuth, loginGoogle, logout } from './firebase.js';
 import { isAdmin, createLicense, listLicenses, setLicenseStatus, listUsers, listEvents } from './db.js';
 
 const $ = (id) => document.getElementById(id);
@@ -21,7 +21,6 @@ function fmtTime(at) {
 }
 
 $('googleBtn').addEventListener('click', () => loginGoogle().catch((e) => toast(e.message, 'error')));
-$('microsoftBtn').addEventListener('click', () => loginMicrosoft().catch((e) => toast(e.message, 'error')));
 $('logoutBtn').addEventListener('click', async () => { await logout(); location.reload(); });
 
 function onUser(user) {
