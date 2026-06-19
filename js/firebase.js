@@ -8,6 +8,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
+  sendPasswordResetEmail,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   signOut,
@@ -65,6 +66,10 @@ export async function loginEmail(email, password) {
 
 export async function resendVerification() {
   if (auth.currentUser) await sendEmailVerification(auth.currentUser);
+}
+
+export async function resetPassword(email) {
+  await sendPasswordResetEmail(auth, email);
 }
 
 // ── Logowanie / weryfikacja telefonem (SMS) ────────────────

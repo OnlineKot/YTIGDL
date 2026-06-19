@@ -386,3 +386,64 @@ details.adv .adv-body { padding: 0 18px 18px; }
 
 /* ── CTA na landingu ─────────────────────────────────────── */
 .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+
+/* ════════════════════════════════════════════════════════════
+   Okno logowania / rejestracji — wygląd jak w prawdziwej apce
+   ════════════════════════════════════════════════════════════ */
+.auth-modal { max-width: 410px; padding: 30px 30px 26px; }
+.auth-head { text-align: center; margin-bottom: 22px; }
+.auth-head .logo-mark { margin: 0 auto 14px; width: 46px; height: 46px; border-radius: 14px; }
+.auth-head .logo-mark svg { width: 24px; height: 24px; }
+.auth-head h2 { font-size: 1.5rem; letter-spacing: -0.02em; margin-bottom: 6px; }
+.auth-head .sub { color: var(--muted); font-size: 0.92rem; }
+
+/* Oficjalny przycisk Google */
+.google-btn {
+  width: 100%; justify-content: center; gap: 11px;
+  height: 48px; border-radius: 12px;
+  background: #fff; color: #1f1f1f; border: 1px solid #dadce0;
+  font-weight: 600; font-size: 0.95rem;
+}
+.google-btn:hover { background: #f7f8f8; border-color: #d2d3d5; transform: none; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+.google-btn svg { width: 19px; height: 19px; }
+
+.divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 0.78rem; margin: 18px 0; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+
+/* Etykiety i pola z ikoną */
+.fld-label { display: block; font-size: 0.82rem; font-weight: 600; color: #d7d7ee; margin: 0 0 7px; }
+.fld-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 14px; }
+.fld-row .fld-label { margin: 0; }
+.fld {
+  position: relative; display: flex; align-items: center; margin-bottom: 4px;
+}
+.fld > svg {
+  position: absolute; left: 13px; width: 19px; height: 19px;
+  color: #8a8ab0; pointer-events: none;
+}
+.fld input {
+  width: 100%; height: 48px;
+  background: rgba(8, 8, 16, 0.65); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 0 14px 0 42px; color: var(--text); font-size: 0.98rem; outline: none;
+  transition: border .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.fld input::placeholder { color: #6b6b86; }
+.fld input:focus { border-color: var(--accent); background: rgba(8,8,16,0.85); box-shadow: 0 0 0 4px rgba(139, 92, 255, 0.16); }
+.fld:focus-within > svg { color: var(--accent); }
+.pw-toggle {
+  position: absolute; right: 8px; width: 34px; height: 34px;
+  display: grid; place-items: center; border: none; background: transparent;
+  color: #8a8ab0; cursor: pointer; border-radius: 8px;
+}
+.pw-toggle:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+.pw-toggle.on { color: var(--accent); }
+.pw-toggle svg { width: 19px; height: 19px; }
+
+.btn-lg { height: 48px; font-size: 0.98rem; margin-top: 16px; border-radius: 12px; }
+
+.link { color: var(--accent); font-weight: 600; font-size: 0.84rem; }
+.link:hover { text-decoration: underline; }
+
+.auth-switch { text-align: center; margin-top: 16px; font-size: 0.88rem; color: var(--muted); }
+.auth-switch a { color: var(--accent); font-weight: 600; }
+.auth-switch a:hover { text-decoration: underline; }
