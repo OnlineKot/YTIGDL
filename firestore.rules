@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// Reguły bezpieczeństwa Firestore dla YTIGDL (architektura statyczna / GitHub Pages).
+// To one chronią dane, ponieważ cała logika działa w przeglądarce.
+// WAŻNE: lista adminów musi być zgodna z ADMIN_EMAILS w public/js/config.js.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email in ['programistatf@gmail.com'];
+    }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+
+    // ── Zużycie na konto ──────────────────────────────────
+    match /usage/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      // Aktualizacja tylko przez właściciela; liczniki NIE mogą maleć (anty-reset).
+      allow update: if isOwner(uid)
+        && request.resource.data.total >= resource.data.total
+        && request.resource.data.youtube >= resource.data.youtube
+        && request.resource.data.instagram >= resource.data.instagram;
+      allow delete: if false;
+    }
+
+    // ── Zużycie na adres IP (limit 5 darmowych / IP) ──────
+    match /ipUsage/{ipHash} {
+      allow read: if isSignedIn();
+      // Dokument współdzielony przez IP; licznik nie może maleć.
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && request.resource.data.total >= resource.data.total;
+      allow delete: if false;
+    }
+
+    // ── Licencje / kody PRO ───────────────────────────────
+    match /licenses/{key} {
+      allow read: if isSignedIn();
+      allow create, delete: if isAdmin();
+      // Admin może wszystko; zwykły użytkownik może JEDYNIE dopisać swoją aktywację,
+      // nie przekraczając limitu aktywacji i nie zmieniając innych pól.
+      allow update: if isAdmin()
+        || (
+          isSignedIn()
+          && resource.data.status == 'active'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['activations'])
+          && request.resource.data.activations.size() == resource.data.activations.size() + 1
+          && request.resource.data.activations.size() <= resource.data.maxActivations
+        );
+    }
+
+    // ── Dziennik zdarzeń ──────────────────────────────────
+    match /events/{id} {
+      allow create: if isSignedIn();
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,23 +1,8 @@
-import {
-  initAuth,
-  watchAuth,
-  getIdToken,
-  loginGoogle,
-  loginMicrosoft,
-  logout,
-} from './firebase.js';
+import { watchAuth, loginGoogle, loginMicrosoft, logout } from './firebase.js';
+import { isAdmin, createLicense, listLicenses, setLicenseStatus, listUsers, listEvents } from './db.js';
 
 const $ = (id) => document.getElementById(id);
-
-async function api(path, options = {}) {
-  const token = await getIdToken();
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(path, { ...options, headers });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error || 'Błąd'), { status: res.status });
-  return data;
-}
+let currentUser = null;
 
 function toast(msg, type = '') {
   const el = $('toast');
@@ -25,56 +10,54 @@ function toast(msg, type = '') {
   el.className = `toast show ${type}`;
   setTimeout(() => (el.className = `toast ${type}`), 3500);
 }
-
 function esc(s) {
   return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
+function fmtTime(at) {
+  try {
+    const d = at?.toDate ? at.toDate() : new Date(at);
+    return d.toLocaleString('pl-PL');
+  } catch { return '—'; }
+}
 
-// ── Logowanie ──────────────────────────────────────────────
 $('googleBtn').addEventListener('click', () => loginGoogle().catch((e) => toast(e.message, 'error')));
 $('microsoftBtn').addEventListener('click', () => loginMicrosoft().catch((e) => toast(e.message, 'error')));
 $('logoutBtn').addEventListener('click', async () => { await logout(); location.reload(); });
 
-async function onUser(user) {
+function onUser(user) {
+  currentUser = user;
   if (!user) {
     $('gate').classList.remove('hidden');
     $('panel').classList.add('hidden');
     $('userChip').classList.add('hidden');
     return;
   }
-  $('userEmail').textContent = user.email;
-  $('userAvatar').src = user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`;
-  try {
-    await api('/api/admin/me'); // sprawdzenie uprawnień
+  $('userEmail').textContent = user.email || user.uid;
+  $('userAvatar').src = user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || 'YT')}`;
+  $('userChip').classList.remove('hidden');
+  if (isAdmin(user)) {
     $('gate').classList.add('hidden');
     $('panel').classList.remove('hidden');
-    $('userChip').classList.remove('hidden');
     loadAll();
-  } catch (e) {
+  } else {
     $('gate').classList.remove('hidden');
     $('panel').classList.add('hidden');
-    $('userChip').classList.remove('hidden');
-    $('gateMsg').textContent = `Konto ${user.email} nie ma uprawnień administratora.`;
+    $('gateMsg').textContent = `Konto ${user.email || ''} nie ma uprawnień administratora.`;
   }
 }
 
-// ── Ładowanie danych ───────────────────────────────────────
-async function loadAll() {
-  loadLicenses();
-  loadUsers();
-  loadEvents();
-}
+async function loadAll() { loadLicenses(); loadUsers(); loadEvents(); }
 
 async function loadLicenses() {
   const tbody = document.querySelector('#licTable tbody');
   try {
-    const list = await api('/api/admin/licenses');
+    const list = await listLicenses();
     tbody.innerHTML = list.map((l) => `
       <tr>
         <td><code>${esc(l.key)}</code></td>
         <td>${esc(l.plan)}</td>
         <td><span class="tag ${l.status}">${l.status === 'active' ? 'aktywna' : 'unieważniona'}</span></td>
-        <td>${l.activations.length}/${l.maxActivations}</td>
+        <td>${(l.activations?.length || 0)}/${l.maxActivations}</td>
         <td>${esc(l.note || '—')}</td>
         <td>${l.status === 'active'
           ? `<button class="btn btn-ghost" data-revoke="${esc(l.key)}" style="padding:6px 10px">Unieważnij</button>`
@@ -86,7 +69,7 @@ async function loadLicenses() {
 async function loadUsers() {
   const tbody = document.querySelector('#usersTable tbody');
   try {
-    const list = await api('/api/admin/users');
+    const list = await listUsers();
     tbody.innerHTML = list.map((u) => `
       <tr>
         <td>${esc(u.email || u.uid)}</td>
@@ -101,55 +84,42 @@ async function loadUsers() {
 async function loadEvents() {
   const tbody = document.querySelector('#eventsTable tbody');
   try {
-    const list = await api('/api/admin/events?limit=80');
-    tbody.innerHTML = list.map((ev) => {
-      const details = ev.platform || ev.provider || ev.key || ev.plan || '';
-      return `<tr>
-        <td>${esc(new Date(ev.at).toLocaleString('pl-PL'))}</td>
+    const list = await listEvents(80);
+    tbody.innerHTML = list.map((ev) => `
+      <tr>
+        <td>${esc(fmtTime(ev.at))}</td>
         <td>${esc(ev.type)}</td>
-        <td>${esc(details)}</td>
+        <td>${esc(ev.platform || ev.provider || ev.key || ev.plan || '')}</td>
         <td>${esc(ev.email || '—')}</td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="4" style="color:var(--muted)">Brak zdarzeń.</td></tr>';
+      </tr>`).join('') || '<tr><td colspan="4" style="color:var(--muted)">Brak zdarzeń.</td></tr>';
   } catch (e) { toast(e.message, 'error'); }
 }
 
-// ── Generowanie licencji ───────────────────────────────────
 $('genBtn').addEventListener('click', async () => {
-  const plan = $('planSelect').value;
-  const maxActivations = Number($('maxActivations').value) || 1;
-  const note = $('note').value.trim();
   try {
-    const lic = await api('/api/admin/licenses', {
-      method: 'POST',
-      body: JSON.stringify({ plan, maxActivations, note }),
+    const lic = await createLicense({
+      plan: $('planSelect').value,
+      maxActivations: Number($('maxActivations').value) || 1,
+      note: $('note').value.trim(),
+      createdBy: currentUser?.email || '',
     });
     $('genResult').className = 'msg ok';
-    $('genResult').innerHTML = `Wygenerowano: <code>${esc(lic.key)}</code> — skopiuj i przekaż klientowi.`;
+    $('genResult').innerHTML = `Wygenerowano: <code>${esc(lic.key)}</code> — skopiowano do schowka.`;
     $('note').value = '';
     navigator.clipboard?.writeText(lic.key).catch(() => {});
     toast('Kod skopiowany do schowka.', 'ok');
     loadLicenses();
-  } catch (e) {
-    $('genResult').className = 'msg error';
-    $('genResult').textContent = e.message;
-  }
+  } catch (e) { $('genResult').className = 'msg error'; $('genResult').textContent = e.message; }
 });
 
-// Akcje na licencjach (delegacja zdarzeń).
 document.querySelector('#licTable').addEventListener('click', async (e) => {
   const revoke = e.target.closest('[data-revoke]');
   const restore = e.target.closest('[data-restore]');
   try {
-    if (revoke) { await api(`/api/admin/licenses/${revoke.dataset.revoke}/revoke`, { method: 'POST' }); toast('Unieważniono.', 'ok'); }
-    if (restore) { await api(`/api/admin/licenses/${restore.dataset.restore}/restore`, { method: 'POST' }); toast('Przywrócono.', 'ok'); }
+    if (revoke) { await setLicenseStatus(revoke.dataset.revoke, 'revoked'); toast('Unieważniono.', 'ok'); }
+    if (restore) { await setLicenseStatus(restore.dataset.restore, 'active'); toast('Przywrócono.', 'ok'); }
     if (revoke || restore) loadLicenses();
   } catch (err) { toast(err.message, 'error'); }
 });
 
-// ── Start ──────────────────────────────────────────────────
-(async () => {
-  const auth = await initAuth();
-  if (!auth) { $('gateMsg').textContent = 'Brak konfiguracji Firebase — uzupełnij zmienne FIREBASE_*.'; return; }
-  watchAuth(onUser);
-})();
+watchAuth(onUser);

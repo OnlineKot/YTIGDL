@@ -1,10 +1,6 @@
-// Inicjalizacja Firebase Web SDK + funkcje logowania (Google / Microsoft / e-mail).
+// Inicjalizacja Firebase Web SDK + logowanie (Google / Microsoft / e-mail / telefon).
+// Działa w 100% w przeglądarce — idealne pod GitHub Pages.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import {
-  getAnalytics,
-  logEvent as logAnalyticsEvent,
-  isSupported as analyticsSupported,
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -18,64 +14,42 @@ import {
   signOut,
   onAuthStateChanged,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {
+  getAnalytics,
+  logEvent as logAnalyticsEvent,
+  isSupported as analyticsSupported,
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
+import { firebaseConfig } from './config.js';
 
-let auth = null;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+auth.useDeviceLanguage();
+const db = getFirestore(app);
 let analytics = null;
-let appConfig = null;
 
-export async function loadConfig() {
-  const res = await fetch('/api/config');
-  appConfig = await res.json();
-  return appConfig;
-}
-
-export function getAppConfig() {
-  return appConfig;
-}
-
-export async function initAuth() {
-  if (!appConfig) await loadConfig();
-  if (!appConfig.firebase?.apiKey) {
-    console.warn('[firebase] Brak konfiguracji Firebase Web — logowanie wyłączone. Ustaw zmienne FIREBASE_* w .env.');
-    return null;
-  }
-  const app = initializeApp(appConfig.firebase);
-  auth = getAuth(app);
-  auth.useDeviceLanguage();
-
-  // Firebase Analytics — śledzenie ruchu (jeśli przeglądarka wspiera).
+// Firebase Analytics — śledzenie ruchu (jeśli przeglądarka wspiera).
+(async () => {
   try {
-    if (appConfig.firebase.measurementId && (await analyticsSupported())) {
+    if (firebaseConfig.measurementId && (await analyticsSupported())) {
       analytics = getAnalytics(app);
     }
-  } catch {
-    /* analytics opcjonalne */
-  }
-  return auth;
-}
+  } catch { /* analytics opcjonalne */ }
+})();
+
+export { auth, db };
 
 // Zdarzenie do Firebase Analytics (np. 'download', 'login', 'pro_activate').
 export function track(name, params = {}) {
-  try {
-    if (analytics) logAnalyticsEvent(analytics, name, params);
-  } catch {
-    /* ignoruj */
-  }
+  try { if (analytics) logAnalyticsEvent(analytics, name, params); } catch { /* ignoruj */ }
 }
 
 export function watchAuth(callback) {
-  if (!auth) return callback(null);
   onAuthStateChanged(auth, callback);
 }
 
-export async function getIdToken() {
-  if (!auth?.currentUser) return null;
-  return auth.currentUser.getIdToken();
-}
-
 export async function loginGoogle() {
-  const provider = new GoogleAuthProvider();
-  const cred = await signInWithPopup(auth, provider);
+  const cred = await signInWithPopup(auth, new GoogleAuthProvider());
   return cred.user;
 }
 
@@ -98,34 +72,25 @@ export async function loginEmail(email, password) {
 }
 
 export async function resendVerification() {
-  if (auth?.currentUser) await sendEmailVerification(auth.currentUser);
+  if (auth.currentUser) await sendEmailVerification(auth.currentUser);
 }
 
 // ── Logowanie / weryfikacja telefonem (SMS) ────────────────
 let recaptchaVerifier = null;
-
 function ensureRecaptcha(containerId) {
   if (recaptchaVerifier) return recaptchaVerifier;
   recaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
   return recaptchaVerifier;
 }
-
-// Wysyła SMS z kodem. Zwraca obiekt potwierdzenia (z metodą .confirm(kod)).
 export async function sendPhoneCode(phoneNumber, containerId = 'recaptcha-container') {
   const verifier = ensureRecaptcha(containerId);
   return signInWithPhoneNumber(auth, phoneNumber, verifier);
 }
-
-// Resetuje reCAPTCHA (np. po błędzie, by spróbować ponownie).
 export function resetRecaptcha() {
   try { recaptchaVerifier?.clear(); } catch { /* ignoruj */ }
   recaptchaVerifier = null;
 }
 
 export async function logout() {
-  if (auth) await signOut(auth);
-}
-
-export function isReady() {
-  return auth !== null;
+  await signOut(auth);
 }

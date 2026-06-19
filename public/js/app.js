@@ -1,36 +1,19 @@
 import {
-  loadConfig,
-  initAuth,
-  watchAuth,
-  getIdToken,
-  loginGoogle,
-  loginMicrosoft,
-  registerEmail,
-  loginEmail,
-  resendVerification,
-  sendPhoneCode,
-  resetRecaptcha,
-  logout,
-  track,
+  watchAuth, loginGoogle, loginMicrosoft, registerEmail, loginEmail,
+  resendVerification, sendPhoneCode, resetRecaptcha, logout, track,
 } from './firebase.js';
+import {
+  isAdmin, ensureUsage, getStatus, canDownload,
+  incrementUsage, incrementIpUsage, activateLicense, logEvent,
+} from './db.js';
+import { detectPlatform, isSupportedUrl, triggerDownload } from './download.js';
 
 const $ = (id) => document.getElementById(id);
 let currentUser = null;
 let quality = 'best';
 let authMode = 'login';
 
-document.getElementById('year').textContent = new Date().getFullYear();
-
-// ── Pomocnicze: API z tokenem ──────────────────────────────
-async function api(path, options = {}) {
-  const token = await getIdToken();
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(path, { ...options, headers });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error || 'Błąd'), { data, status: res.status });
-  return data;
-}
+$('year').textContent = new Date().getFullYear();
 
 function toast(message, type = '') {
   const el = $('toast');
@@ -38,10 +21,9 @@ function toast(message, type = '') {
   el.className = `toast show ${type}`;
   setTimeout(() => (el.className = `toast ${type}`), 3500);
 }
-
-// ── Modale ─────────────────────────────────────────────────
 function openModal(id) { $(id).classList.add('show'); }
 function closeModal(id) { $(id).classList.remove('show'); }
+
 document.querySelectorAll('[data-close]').forEach((b) =>
   b.addEventListener('click', (e) => e.target.closest('.modal-backdrop').classList.remove('show'))
 );
@@ -49,49 +31,48 @@ document.querySelectorAll('.modal-backdrop').forEach((m) =>
   m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); })
 );
 
-// ── Stan UI logowania ──────────────────────────────────────
-function renderUser(user) {
+function isVerified(user) {
+  // Konta telefon/Google/Microsoft są zweryfikowane; e-mail/hasło wymaga potwierdzenia.
+  const isPassword = user.providerData?.[0]?.providerId === 'password';
+  return !isPassword || user.emailVerified;
+}
+
+// ── Stan UI po zalogowaniu ─────────────────────────────────
+async function renderUser(user) {
   currentUser = user;
   const chip = $('userChip');
-  const loginBtn = $('loginBtn');
-  const adminLink = $('adminLink');
   if (user) {
     chip.classList.remove('hidden');
-    loginBtn.classList.add('hidden');
-    $('userEmail').textContent = user.email || 'Konto';
-    $('userAvatar').src = user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || 'YT')}`;
+    $('loginBtn').classList.add('hidden');
+    $('userEmail').textContent = user.email || user.phoneNumber || 'Konto';
+    $('userAvatar').src = user.photoURL ||
+      `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || user.phoneNumber || 'YT')}`;
+    $('adminLink').classList.toggle('hidden', !isAdmin(user));
+    try { await ensureUsage(user); } catch { /* reguły mogą blokować przed weryfikacją */ }
     refreshStatus();
-    // Pokaż link admina po sprawdzeniu uprawnień.
-    api('/api/admin/me').then(() => adminLink.classList.remove('hidden')).catch(() => adminLink.classList.add('hidden'));
-    // Ostrzeżenie o niezweryfikowanym e-mailu.
-    if (user.providerData?.[0]?.providerId === 'password' && !user.emailVerified) {
-      toast('Potwierdź adres e-mail — sprawdź skrzynkę.', 'error');
-    }
+    if (!isVerified(user)) toast('Potwierdź adres e-mail — sprawdź skrzynkę.', 'error');
   } else {
     chip.classList.add('hidden');
-    loginBtn.classList.remove('hidden');
-    adminLink.classList.add('hidden');
+    $('loginBtn').classList.remove('hidden');
+    $('adminLink').classList.add('hidden');
     $('usageBar').classList.add('hidden');
   }
 }
 
-// ── Status limitów ─────────────────────────────────────────
 async function refreshStatus() {
+  if (!currentUser) return;
   try {
-    const s = await api('/api/download/status');
+    const s = await getStatus(currentUser);
     const bar = $('usageBar');
     bar.classList.remove('hidden');
     if (s.pro) {
       $('usageText').textContent = '✨ Plan PRO — pobierasz bez limitów';
       $('usageFill').style.width = '100%';
     } else {
-      const used = Math.max(s.accountUsed, s.ipUsed);
-      $('usageText').textContent = `Darmowe pobrania: ${used}/${s.limit}`;
-      $('usageFill').style.width = `${Math.min(100, (used / s.limit) * 100)}%`;
+      $('usageText').textContent = `Darmowe pobrania: ${s.used}/${s.limit}`;
+      $('usageFill').style.width = `${Math.min(100, (s.used / s.limit) * 100)}%`;
     }
-  } catch {
-    $('usageBar').classList.add('hidden');
-  }
+  } catch { $('usageBar').classList.add('hidden'); }
 }
 
 // ── Logowanie ──────────────────────────────────────────────
@@ -99,13 +80,8 @@ async function afterLogin(user, provider) {
   closeModal('authModal');
   track('login', { method: provider });
   try {
-    const token = await getIdToken();
-    await fetch('/api/track/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify({ provider }),
-    });
-  } catch { /* śledzenie best-effort */ }
+    await logEvent({ type: 'login', provider, uid: user.uid, email: user.email || user.phoneNumber || null });
+  } catch { /* best-effort */ }
 }
 
 $('loginBtn').addEventListener('click', () => openModal('authModal'));
@@ -113,11 +89,11 @@ $('logoutBtn').addEventListener('click', async () => { await logout(); toast('Wy
 
 $('googleBtn').addEventListener('click', async () => {
   try { const u = await loginGoogle(); await afterLogin(u, 'google'); toast(`Cześć, ${u.email}!`, 'ok'); }
-  catch (e) { $('authMsg').className = 'msg error'; $('authMsg').textContent = e.message; }
+  catch (e) { showAuthError(e); }
 });
 $('microsoftBtn').addEventListener('click', async () => {
   try { const u = await loginMicrosoft(); await afterLogin(u, 'microsoft'); toast(`Cześć, ${u.email}!`, 'ok'); }
-  catch (e) { $('authMsg').className = 'msg error'; $('authMsg').textContent = e.message; }
+  catch (e) { showAuthError(e); }
 });
 
 // Zakładki: logowanie / rejestracja / telefon
@@ -156,17 +132,18 @@ $('emailAuthBtn').addEventListener('click', async () => {
         });
         return;
       }
-      await afterLogin(u, 'email');
-      toast(`Cześć, ${u.email}!`, 'ok');
+      await afterLogin(u, 'email'); toast(`Cześć, ${u.email}!`, 'ok');
     }
-  } catch (e) {
-    msg.className = 'msg error';
-    msg.textContent = mapAuthError(e.code) || e.message;
-  }
+  } catch (e) { showAuthError(e); }
 });
 
+function showAuthError(e) {
+  const msg = $('authMsg');
+  msg.className = 'msg error';
+  msg.textContent = mapAuthError(e.code) || e.message;
+}
 function mapAuthError(code) {
-  const map = {
+  return {
     'auth/email-already-in-use': 'Ten e-mail jest już zarejestrowany.',
     'auth/invalid-email': 'Nieprawidłowy adres e-mail.',
     'auth/weak-password': 'Hasło jest za słabe (min. 6 znaków).',
@@ -180,39 +157,29 @@ function mapAuthError(code) {
     'auth/code-expired': 'Kod SMS wygasł — wyślij nowy.',
     'auth/too-many-requests': 'Za dużo prób. Spróbuj później.',
     'auth/quota-exceeded': 'Przekroczono limit SMS. Spróbuj później.',
-  };
-  return map[code];
+    'auth/operation-not-allowed': 'Ta metoda logowania jest wyłączona w Firebase.',
+  }[code];
 }
 
-// ── Logowanie telefonem (SMS) ──────────────────────────────
+// ── Telefon (SMS) ──────────────────────────────────────────
 let phoneConfirmation = null;
-
 $('sendCodeBtn').addEventListener('click', async () => {
   const phone = $('phoneInput').value.trim();
   const msg = $('authMsg');
   if (!/^\+\d{8,15}$/.test(phone)) {
-    msg.className = 'msg error';
-    msg.textContent = 'Podaj numer w formacie międzynarodowym, np. +48600000000.';
-    return;
+    msg.className = 'msg error'; msg.textContent = 'Podaj numer w formacie międzynarodowym, np. +48600000000.'; return;
   }
   const btn = $('sendCodeBtn');
   btn.disabled = true; btn.textContent = 'Wysyłam…';
   try {
     phoneConfirmation = await sendPhoneCode(phone);
-    msg.className = 'msg ok';
-    msg.textContent = 'Wysłaliśmy kod SMS. Wpisz go poniżej.';
+    msg.className = 'msg ok'; msg.textContent = 'Wysłaliśmy kod SMS. Wpisz go poniżej.';
     $('codeInput').classList.remove('hidden');
     $('verifyCodeBtn').classList.remove('hidden');
     $('codeInput').focus();
-  } catch (e) {
-    resetRecaptcha();
-    msg.className = 'msg error';
-    msg.textContent = mapAuthError(e.code) || e.message;
-  } finally {
-    btn.disabled = false; btn.textContent = 'Wyślij kod SMS';
-  }
+  } catch (e) { resetRecaptcha(); showAuthError(e); }
+  finally { btn.disabled = false; btn.textContent = 'Wyślij kod SMS'; }
 });
-
 $('verifyCodeBtn').addEventListener('click', async () => {
   const code = $('codeInput').value.trim();
   const msg = $('authMsg');
@@ -220,15 +187,11 @@ $('verifyCodeBtn').addEventListener('click', async () => {
   if (code.length < 6) { msg.className = 'msg error'; msg.textContent = 'Kod ma 6 cyfr.'; return; }
   try {
     const cred = await phoneConfirmation.confirm(code);
-    await afterLogin(cred.user, 'phone');
-    toast('Zalogowano przez telefon!', 'ok');
-  } catch (e) {
-    msg.className = 'msg error';
-    msg.textContent = mapAuthError(e.code) || 'Nieprawidłowy kod SMS.';
-  }
+    await afterLogin(cred.user, 'phone'); toast('Zalogowano przez telefon!', 'ok');
+  } catch (e) { showAuthError(e); }
 });
 
-// ── Wybór jakości ──────────────────────────────────────────
+// ── Jakość ─────────────────────────────────────────────────
 $('qualitySeg').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn) return;
@@ -244,50 +207,43 @@ async function handleDownload() {
   const url = $('urlInput').value.trim();
   const result = $('result');
   if (!url) { toast('Wklej najpierw link.', 'error'); return; }
+  if (!isSupportedUrl(url)) { toast('Obsługujemy linki z YouTube i Instagrama.', 'error'); return; }
   if (!currentUser) { openModal('authModal'); return; }
-  if (currentUser.providerData?.[0]?.providerId === 'password' && !currentUser.emailVerified) {
-    toast('Najpierw potwierdź adres e-mail.', 'error'); return;
+  if (!isVerified(currentUser)) { toast('Najpierw potwierdź adres e-mail.', 'error'); return; }
+
+  const platform = detectPlatform(url);
+  const btn = $('downloadBtn');
+
+  // Sprawdź limit (konto + IP) zanim cokolwiek pobierzemy.
+  let eligibility;
+  try { eligibility = await canDownload(currentUser); }
+  catch (e) { toast('Błąd sprawdzania limitu: ' + e.message, 'error'); return; }
+
+  if (!eligibility.allowed) {
+    result.className = 'result show error';
+    result.innerHTML = eligibility.reason === 'ip_limit'
+      ? '🔒 Z tego adresu IP wykorzystano 5 darmowych pobrań. Wpisz kod PRO, aby kontynuować.'
+      : '🔒 Wykorzystano 5 darmowych pobrań na koncie. Wpisz kod PRO, aby kontynuować.';
+    openModal('proModal');
+    return;
   }
 
-  const btn = $('downloadBtn');
-  btn.disabled = true;
-  btn.textContent = 'Pobieram…';
+  btn.disabled = true; btn.textContent = 'Pobieram…';
   result.className = 'result show';
-  result.innerHTML = '⏳ Przygotowuję plik… to może chwilę potrwać.';
+  result.innerHTML = '⏳ Przygotowuję link do pobrania…';
 
   try {
-    const token = await getIdToken();
-    const res = await fetch('/api/download', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ url, quality }),
-    });
+    const { filename } = await triggerDownload(url, { quality });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 402 || err.code === 'license_required') {
-        result.className = 'result show error';
-        result.innerHTML = `🔒 ${err.error}`;
-        openModal('proModal');
-        return;
-      }
-      throw new Error(err.error || 'Pobieranie nie powiodło się.');
+    if (!eligibility.pro) {
+      await incrementUsage(currentUser.uid, platform);
+      await incrementIpUsage(platform);
     }
-
-    // Pobierz plik jako blob i zapisz.
-    const blob = await res.blob();
-    const disposition = res.headers.get('Content-Disposition') || '';
-    const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
-    const fileName = match ? decodeURIComponent(match[1]) : 'ytigdl-download';
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    await logEvent({ type: 'download', platform, uid: currentUser.uid, email: currentUser.email || null, pro: !!eligibility.pro });
 
     result.className = 'result show';
-    result.innerHTML = `✅ Gotowe! Pobrano: <strong>${fileName}</strong>`;
-    track('download', { quality });
+    result.innerHTML = `✅ Gotowe! ${filename ? `Plik: <strong>${filename}</strong>` : 'Pobieranie rozpoczęte.'}`;
+    track('download', { platform, quality });
     refreshStatus();
   } catch (e) {
     result.className = 'result show error';
@@ -308,26 +264,16 @@ $('activateProBtn').addEventListener('click', async () => {
   const msg = $('proMsg');
   if (!key) { msg.className = 'msg error'; msg.textContent = 'Wpisz kod PRO.'; return; }
   try {
-    const data = await api('/api/license/activate', { method: 'POST', body: JSON.stringify({ key }) });
-    msg.className = 'msg ok';
-    msg.textContent = data.message;
-    track('pro_activate', { plan: data.plan });
-    toast('✨ Plan PRO aktywny! Pobierasz bez limitów.', 'ok');
+    const res = await activateLicense(key, currentUser);
+    if (!res.ok) { msg.className = 'msg error'; msg.textContent = res.error; return; }
+    msg.className = 'msg ok'; msg.textContent = 'Plan PRO aktywowany! Pobierasz teraz bez limitów.';
+    track('pro_activate', { plan: res.plan });
+    await logEvent({ type: 'license_activate', uid: currentUser.uid, email: currentUser.email || null, key: res.key, plan: res.plan });
+    toast('✨ Plan PRO aktywny!', 'ok');
     refreshStatus();
     setTimeout(() => closeModal('proModal'), 1500);
-  } catch (e) {
-    msg.className = 'msg error';
-    msg.textContent = e.message;
-  }
+  } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
 });
 
 // ── Start ──────────────────────────────────────────────────
-(async () => {
-  await loadConfig();
-  const auth = await initAuth();
-  if (!auth) {
-    toast('Logowanie wyłączone — brak konfiguracji Firebase.', 'error');
-    return;
-  }
-  watchAuth(renderUser);
-})();
+watchAuth(renderUser);
