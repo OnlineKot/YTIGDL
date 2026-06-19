@@ -4,22 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>YTIGDL — pobierz dosłownie wszystko z Instagrama i YouTube</title>
-  <meta name="description" content="YTIGDL — nowoczesny downloader. Pobierz dosłownie wszystko z Instagrama, YouTube i więcej. Plan PRO bez limitów." />
+  <meta name="description" content="YTIGDL — pobierz dosłownie wszystko z Instagrama, YouTube i więcej. Najwyższa jakość, plan PRO bez limitów." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;850&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <!-- Animowane tło -->
   <div class="bg-orbs"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
   <div class="bg-grid"></div>
 
-  <!-- Nawigacja -->
   <nav class="nav">
-    <div class="brand"><span class="dot"></span> <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="brand"><span class="dot"></span> <a href="/"><span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span></a></div>
+      <div class="nav-links">
+        <a href="download/">Pobieranie</a>
+        <a href="history/">Historia</a>
+      </div>
+    </div>
     <div class="nav-actions">
-      <button class="btn btn-ghost" id="proBtn">Mam kod <span class="gradient">PRO</span></button>
       <button class="btn btn-primary" id="loginBtn">Zaloguj się</button>
       <div class="user-chip hidden" id="userChip">
         <img id="userAvatar" alt="" />
@@ -29,11 +32,10 @@
     </div>
   </nav>
 
-  <!-- Hero -->
   <header class="hero">
-    <div class="badge rise d1">⚡ Nowoczesny downloader &nbsp;•&nbsp; plan <span class="pill-grad gradient">PRO</span></div>
+    <div class="badge rise d1">⚡ Najwyższa jakość &nbsp;•&nbsp; plan <span class="gradient" style="font-weight:800">PRO</span></div>
     <h1 class="rise d2">Pobierz dosłownie <span class="gradient">wszystko</span><br />z Instagrama, YouTube i&nbsp;więcej</h1>
-    <p class="lead rise d3">Wklej link, a my zajmiemy się resztą. Filmy, audio, rolki, posty — w najwyższej jakości. Pierwsze 5 pobrań gratis.</p>
+    <p class="lead rise d3">Wklej link, wybierz format i jakość — resztą zajmiemy się my. Filmy, audio, rolki, posty. Pierwsze 5 pobrań gratis.</p>
 
     <div class="platforms rise d3">
       <span class="plat">
@@ -47,33 +49,15 @@
       <span class="plat soon">+ TikTok, X, Facebook wkrótce</span>
     </div>
 
-    <!-- Downloader -->
-    <section class="downloader rise d4">
-      <div class="input-row">
-        <input class="input" id="urlInput" type="url" placeholder="Wklej link z YouTube lub Instagrama…" />
-        <button class="btn btn-primary" id="downloadBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Pobierz
-        </button>
-      </div>
-      <div class="quality-row">
-        <span style="color:var(--muted);font-size:.86rem">Format:</span>
-        <div class="seg" id="qualitySeg">
-          <button data-q="best" class="active">🎬 Wideo (MP4)</button>
-          <button data-q="audio">🎧 Audio (MP3)</button>
-        </div>
-      </div>
-
-      <div class="usage-bar hidden" id="usageBar">
-        <span id="usageText">—</span>
-        <div class="usage-track"><div class="usage-fill" id="usageFill"></div></div>
-      </div>
-
-      <div class="result" id="result"></div>
-    </section>
+    <div class="cta-row rise d4">
+      <a class="btn btn-primary" href="download/" style="padding:15px 26px;font-size:1rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Pobierz teraz
+      </a>
+      <a class="btn btn-ghost" href="history/" style="padding:15px 26px">Moja historia</a>
+    </div>
   </header>
 
-  <!-- Zalety -->
   <div class="section-title">
     <h2>Dlaczego <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span>?</h2>
     <p>Szybko, ładnie i bez kombinowania.</p>
@@ -85,82 +69,31 @@
       <p>Filmy, Shorts, rolki, posty i więcej. Kolejne platformy w drodze.</p>
     </div>
     <div class="feature">
-      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-      <h3>Bezpieczne logowanie</h3>
-      <p>Google, e‑mail z weryfikacją albo SMS na telefon.</p>
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <h3>Wiele opcji i jakości</h3>
+      <p>Format MP4/MP3/WebM, kodek, bitrate, własna nazwa pliku, przycinanie.</p>
     </div>
     <div class="feature">
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2"/></svg></div>
-      <h3>Plan <span class="gradient">PRO</span></h3>
-      <p>Po 5 darmowych pobraniach wpisz kod PRO i pobieraj bez limitów.</p>
+      <h3>Najwyższa jakość</h3>
+      <p>Aż do 4K / 8K i audio 320 kbps. Plan <span class="gradient" style="font-weight:700">PRO</span> bez limitów.</p>
     </div>
     <div class="feature">
-      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-      <h3>Najwyższa jakość</h3>
-      <p>Wideo do 4K i audio MP3. Szybko, prosto, bez reklam.</p>
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+      <h3>Historia pobrań</h3>
+      <p>Wszystkie Twoje pobrania w jednym miejscu, zsynchronizowane z kontem.</p>
     </div>
   </section>
 
   <footer>
-    <div>© <span id="year"></span> <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL" id="secretSpot" style="cursor:default">DL</span></span> — pobierz wszystko.</div>
+    <div>© <span id="year"></span> <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL" id="secretSpot">DL</span></span> — pobierz wszystko.</div>
     <div>Używaj zgodnie z prawem autorskim i regulaminami platform.</div>
   </footer>
-
-  <!-- Modal logowania -->
-  <div class="modal-backdrop" id="authModal">
-    <div class="modal">
-      <button class="modal-close" data-close>&times;</button>
-      <h2>Witaj w <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span></h2>
-      <p class="sub">Zaloguj się, aby pobierać. Pierwsze 5 pobrań gratis.</p>
-
-      <button class="btn oauth-btn" id="googleBtn">
-        <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Kontynuuj z Google
-      </button>
-      <div class="divider">lub</div>
-
-      <div class="tabs" id="authTabs">
-        <button data-tab="login" class="active">Logowanie</button>
-        <button data-tab="register">Rejestracja</button>
-        <button data-tab="phone">📱 Telefon</button>
-      </div>
-
-      <!-- Pola e-mail -->
-      <div id="emailFields">
-        <input class="input" id="emailInput" type="email" placeholder="Adres e-mail" />
-        <input class="input" id="passwordInput" type="password" placeholder="Hasło (min. 6 znaków)" />
-        <button class="btn btn-primary btn-block" id="emailAuthBtn">Zaloguj się</button>
-      </div>
-
-      <!-- Pola telefon (weryfikacja SMS) -->
-      <div id="phoneFields" class="hidden">
-        <input class="input" id="phoneInput" type="tel" placeholder="+48 600 000 000" />
-        <button class="btn btn-primary btn-block" id="sendCodeBtn">Wyślij kod SMS</button>
-        <input class="input hidden" id="codeInput" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Kod z SMS (6 cyfr)" style="margin-top:12px" />
-        <button class="btn btn-primary btn-block hidden" id="verifyCodeBtn" style="margin-top:10px">Zweryfikuj i zaloguj</button>
-      </div>
-
-      <div class="msg" id="authMsg"></div>
-      <div id="recaptcha-container"></div>
-    </div>
-  </div>
-
-  <!-- Modal kodu PRO -->
-  <div class="modal-backdrop" id="proModal">
-    <div class="modal">
-      <button class="modal-close" data-close>&times;</button>
-      <h2>Aktywuj plan <span class="gradient">PRO</span></h2>
-      <p class="sub">Wpisz kod licencyjny, aby pobierać bez limitów.</p>
-      <input class="input" id="proInput" type="text" placeholder="YTIG-XXXX-XXXX-XXXX" />
-      <button class="btn btn-primary btn-block" id="activateProBtn">Aktywuj <span class="gradient">PRO</span></button>
-      <div class="msg" id="proMsg"></div>
-    </div>
-  </div>
 
   <!-- Ukryty modal PIN (wejście do panelu admina) -->
   <div class="modal-backdrop" id="pinModal">
     <div class="modal">
-      <button class="modal-close" data-close>&times;</button>
+      <button class="modal-close" data-close-pin>&times;</button>
       <h2>Dostęp <span class="gradient">admina</span></h2>
       <p class="sub">Wpisz PIN, aby przejść do panelu.</p>
       <input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" />
@@ -170,7 +103,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/landing.js"></script>
 </body>
 </html>

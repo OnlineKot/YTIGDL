@@ -14,27 +14,45 @@ export function isSupportedUrl(url) {
   return detectPlatform(url) !== null;
 }
 
-/**
- * Pyta serwis Cobalt o link do pobrania. Zwraca { url, filename }.
- * quality: 'best' (wideo) | 'audio' (mp3).
- */
-export async function resolveDownload(url, { quality = 'best' } = {}) {
+// Buduje ciało żądania Cobalt na podstawie opcji użytkownika.
+function buildBody(url, opts) {
+  const body = {
+    url,
+    filenameStyle: opts.filenameStyle || 'pretty',
+    videoQuality: opts.quality || 'max', // 'max' = najwyższa dostępna
+  };
+  switch (opts.format) {
+    case 'audio':
+      body.downloadMode = 'audio';
+      body.audioFormat = opts.audioFormat || 'mp3';
+      body.audioBitrate = opts.audioBitrate || '320';
+      break;
+    case 'mute':
+      body.downloadMode = 'mute';
+      body.youtubeVideoCodec = opts.codec || 'h264';
+      break;
+    case 'webm':
+      body.downloadMode = 'auto';
+      body.youtubeVideoCodec = 'vp9';
+      break;
+    default: // 'mp4'
+      body.downloadMode = 'auto';
+      body.youtubeVideoCodec = opts.codec || 'h264';
+  }
+  return body;
+}
+
+// Pyta serwis Cobalt o link do pobrania. Zwraca { url, filename }.
+export async function resolveDownload(url, opts = {}) {
   if (!DOWNLOAD_API) {
     throw new Error('Brak skonfigurowanego serwisu pobierania (DOWNLOAD_API w js/config.js).');
   }
-  const body = {
-    url,
-    downloadMode: quality === 'audio' ? 'audio' : 'auto',
-    audioFormat: 'mp3',
-    filenameStyle: 'pretty',
-  };
-
   let res;
   try {
     res = await fetch(DOWNLOAD_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(buildBody(url, opts)),
     });
   } catch {
     throw new Error('Nie udało się połączyć z serwisem pobierania (CORS lub instancja offline).');
@@ -58,18 +76,23 @@ export async function resolveDownload(url, { quality = 'best' } = {}) {
   }
 }
 
-/**
- * Uruchamia pobranie pliku w przeglądarce.
- */
-export async function triggerDownload(url, { quality = 'best' } = {}) {
-  const { url: fileUrl, filename } = await resolveDownload(url, { quality });
+// Uruchamia pobranie w przeglądarce. opts.title → własna nazwa pliku.
+export async function triggerDownload(url, opts = {}) {
+  const { url: fileUrl, filename } = await resolveDownload(url, opts);
+
+  let name = filename;
+  if (opts.title) {
+    const ext = filename && filename.includes('.') ? filename.slice(filename.lastIndexOf('.')) : '';
+    name = opts.title.replace(/[\\/:*?"<>|]/g, '_').slice(0, 120) + ext;
+  }
+
   const a = document.createElement('a');
   a.href = fileUrl;
-  if (filename) a.download = filename;
+  if (name) a.download = name;
   a.target = '_blank';
   a.rel = 'noopener';
   document.body.appendChild(a);
   a.click();
   a.remove();
-  return { fileUrl, filename };
+  return { fileUrl, filename: name || filename };
 }

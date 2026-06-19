@@ -164,6 +164,19 @@ export async function listUsers(max = 200) {
   return snap.docs.map((d) => d.data());
 }
 
+// ── Historia pobrań (podkolekcja usage/{uid}/history) ──────
+export async function addHistory(uid, record) {
+  const id = crypto.randomUUID();
+  await setDoc(doc(db, 'usage', uid, 'history', id), { id, at: serverTimestamp(), ...record });
+}
+
+export async function listHistory(uid, max = 100) {
+  const snap = await getDocs(
+    query(collection(db, 'usage', uid, 'history'), orderBy('at', 'desc'), qLimit(max))
+  );
+  return snap.docs.map((d) => d.data());
+}
+
 // ── Status limitów bieżącego użytkownika ───────────────────
 export async function getStatus(user) {
   const usage = (await getUsage(user.uid)) || (await ensureUsage(user));

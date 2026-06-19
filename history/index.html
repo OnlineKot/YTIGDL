@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historia — YTIGDL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;850&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="bg-orbs"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
+  <div class="bg-grid"></div>
+
+  <nav class="nav">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="brand"><span class="dot"></span> <a href="../"><span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span></a></div>
+      <div class="nav-links">
+        <a href="../download/">Pobieranie</a>
+        <a href="./" class="active">Historia</a>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-primary" id="loginBtn">Zaloguj się</button>
+      <div class="user-chip hidden" id="userChip">
+        <img id="userAvatar" alt="" />
+        <span class="em" id="userEmail"></span>
+        <button class="btn btn-ghost" id="logoutBtn" style="padding:6px 10px">Wyloguj</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page">
+    <div class="page-head">
+      <h1>Twoja <span class="gradient">historia</span></h1>
+      <p>Wszystkie pobrania zapisane na Twoim koncie.</p>
+    </div>
+    <div id="historyArea" class="history-list"></div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script type="module" src="../js/history.js"></script>
+</body>
+</html>
