@@ -47,7 +47,7 @@ async function renderUser(user) {
     $('userEmail').textContent = user.email || user.phoneNumber || 'Konto';
     $('userAvatar').src = user.photoURL ||
       `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || user.phoneNumber || 'YT')}`;
-    $('adminLink').classList.toggle('hidden', !isAdmin(user));
+    isAdmin(user).then((a) => $('adminLink').classList.toggle('hidden', !a)).catch(() => {});
     try { await ensureUsage(user); } catch { /* reguły mogą blokować przed weryfikacją */ }
     refreshStatus();
     if (!isVerified(user)) toast('Potwierdź adres e-mail — sprawdź skrzynkę.', 'error');

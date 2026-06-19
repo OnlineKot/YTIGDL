@@ -5,10 +5,18 @@ import {
   arrayUnion, increment, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { db } from './firebase.js';
-import { FREE_DOWNLOAD_LIMIT, ADMIN_EMAILS } from './config.js';
+import { FREE_DOWNLOAD_LIMIT } from './config.js';
 
-export function isAdmin(user) {
-  return !!user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
+// Sprawdza, czy użytkownik jest adminem — na podstawie kolekcji `admins` w Firestore
+// (ID dokumentu = e-mail). Dzięki temu żaden adres nie jest zaszyty w kodzie.
+export async function isAdmin(user) {
+  if (!user?.email) return false;
+  try {
+    const snap = await getDoc(doc(db, 'admins', user.email.toLowerCase()));
+    return snap.exists();
+  } catch {
+    return false;
+  }
 }
 
 // ── Adres IP klienta (do limitu per IP) ────────────────────

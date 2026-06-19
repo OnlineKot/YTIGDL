@@ -18,9 +18,9 @@ export const firebaseConfig = {
 // Limit darmowych pobrań (na konto ORAZ na adres IP) zanim wymagany jest kod PRO.
 export const FREE_DOWNLOAD_LIMIT = 5;
 
-// Adresy e-mail administratorów (panel + wydawanie kodów PRO).
-// To samo musi być odzwierciedlone w firestore.rules.
-export const ADMIN_EMAILS = ['programistatf@gmail.com'];
+// Administratorzy NIE są zapisani w kodzie — trzymamy ich w Firebase (Firestore),
+// w kolekcji `admins` (ID dokumentu = e-mail admina). Patrz firestore.rules.
+// Aby nadać komuś admina: w konsoli Firestore utwórz dokument admins/<email>.
 
 // ── Serwis pobierania mediów ──────────────────────────────────
 // GitHub Pages nie pobierze pliku samodzielnie (brak backendu/yt-dlp),

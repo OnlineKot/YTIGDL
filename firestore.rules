@@ -2,16 +2,25 @@ rules_version = '2';
 
 // Reguły bezpieczeństwa Firestore dla YTIGDL (architektura statyczna / GitHub Pages).
 // To one chronią dane, ponieważ cała logika działa w przeglądarce.
-// WAŻNE: lista adminów musi być zgodna z ADMIN_EMAILS w public/js/config.js.
+// Administratorzy są trzymani w Firestore (kolekcja `admins`, ID = e-mail) — NIE w kodzie.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function isSignedIn() { return request.auth != null; }
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email in ['programistatf@gmail.com'];
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
     }
     function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+
+    // ── Administratorzy ───────────────────────────────────
+    // Dodawaj adminów RĘCZNIE w konsoli Firebase: dokument admins/<email> (może być pusty).
+    match /admins/{email} {
+      allow read: if isSignedIn() && request.auth.token.email == email;
+      allow write: if false;
+    }
 
     // ── Zużycie na konto ──────────────────────────────────
     match /usage/{uid} {

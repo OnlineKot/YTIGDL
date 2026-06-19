@@ -23,7 +23,7 @@ function fmtTime(at) {
 $('googleBtn').addEventListener('click', () => loginGoogle().catch((e) => toast(e.message, 'error')));
 $('logoutBtn').addEventListener('click', async () => { await logout(); location.reload(); });
 
-function onUser(user) {
+async function onUser(user) {
   currentUser = user;
   if (!user) {
     $('gate').classList.remove('hidden');
@@ -34,7 +34,7 @@ function onUser(user) {
   $('userEmail').textContent = user.email || user.uid;
   $('userAvatar').src = user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email || 'YT')}`;
   $('userChip').classList.remove('hidden');
-  if (isAdmin(user)) {
+  if (await isAdmin(user)) {
     $('gate').classList.add('hidden');
     $('panel').classList.remove('hidden');
     loadAll();
