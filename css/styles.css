@@ -78,16 +78,23 @@ a { color: inherit; text-decoration: none; }
 .logo-mark svg { width: 19px; height: 19px; color: #fff; }
 .nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 
-/* ── Logo YTIGDL: YT (YouTube) • IG (Instagram) • DL (cytrynowy) ── */
+/* ── Logo YTIGDL: YT (kafelek YouTube) • IG (gradient Instagrama) • DL (łagodny żółty) ── */
 .logo {
-  display: inline-flex; align-items: baseline; line-height: 1;
-  letter-spacing: -0.04em; font-weight: 850; font-size: 1.6rem;
+  display: inline-flex; align-items: center; gap: 3px; line-height: 1;
+  letter-spacing: -0.03em; font-weight: 850; font-size: 1.6rem;
   -webkit-user-select: none; user-select: none; touch-action: manipulation;
 }
-.logo span { -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
-.bYT { background: linear-gradient(180deg, #ffffff 0%, #ff2020 100%); }
+/* IG i DL jako kolorowy tekst (clip) */
+.bIG, .bDL { -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
 .bIG { background: linear-gradient(45deg, #feda75 0%, #fa7e1e 28%, #d62976 52%, #962fbf 74%, #4f5bd5 100%); }
-.bDL { background: #ffe600; } /* gładki, cytrynowy żółty */
+.bDL { background: linear-gradient(180deg, #ffdf6b, #ffc02e); } /* łagodny, ciepły żółty — nie ostry */
+/* YT jako czerwony kafelek w stylu YouTube */
+.bYT {
+  background: #ff0000; color: #fff;
+  border-radius: 7px; padding: 0 7px; margin-right: 2px;
+  font-size: 0.84em; font-weight: 850;
+  display: inline-flex; align-items: center; height: 1.18em;
+}
 #secretSpot { -webkit-user-select: none; user-select: none; touch-action: manipulation; cursor: default; }
 
 /* ── Przyciski ────────────────────────────────────────────── */
