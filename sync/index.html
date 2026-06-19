@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Konfiguracja — YTIGDL</title>
+  <title>Synchronizacja — YTIGDL</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;850&display=swap" rel="stylesheet" />
@@ -13,7 +13,7 @@
   <nav class="nav">
     <a href="../" class="brand">
       <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></span>
-      <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span>
+      <span class="logo"><span class="bYT"><span class="fill yt">YT</span></span><span class="bIG"><span class="fill ig">IG</span></span><span class="bDL">DL</span></span>
     </a>
     <div class="nav-actions">
       <button class="btn btn-primary" id="loginBtn">Zaloguj się</button>
@@ -27,28 +27,28 @@
 
   <main class="page" style="max-width:560px">
     <div class="page-head">
-      <h1>Konfiguracja <span class="gradient">bazy</span></h1>
-      <p>Jednorazowo utworzy wszystkie kolekcje w Firestore i ustawi Cię jako administratora. Po użyciu tę stronę usuniemy.</p>
+      <h1>Synchronizacja <span class="gradient">bazy</span></h1>
+      <p>Tworzy w Firestore wszystkie kolekcje (strukturę), ustawia Cię administratorem i zapisuje hasło do panelu w osobnej kolekcji.</p>
     </div>
 
     <div class="panel">
       <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px">
-        ⚠️ Na czas konfiguracji wklej w Firestore <strong>tymczasowe reguły</strong> (poniżej), kliknij „Utwórz", a potem wróć do reguł docelowych.
+        ⚠️ Na czas synchronizacji wklej w Firestore <strong>tymczasowe reguły</strong> (poniżej), kliknij „Synchronizuj", potem wróć do reguł docelowych.
       </p>
 
       <div class="opt" style="margin-bottom:16px">
-        <label>Twój PIN do panelu admina</label>
-        <input id="pinSet" type="text" inputmode="numeric" placeholder="np. 1234" />
-        <span class="hint">Zapisze się jako dokument w kolekcji <code>adminPins</code>.</span>
+        <label>Hasło do panelu admina</label>
+        <input id="pinSet" type="text" placeholder="ustaw dowolne hasło" />
+        <span class="hint">Zapisze się w kolekcji <code>adminPins</code>. Hasło zmienisz sam w Firebase (dodaj/usuń dokument).</span>
       </div>
 
-      <button class="btn btn-primary btn-block btn-lg" id="seedBtn">Utwórz strukturę i ustaw mnie jako admina</button>
+      <button class="btn btn-primary btn-block btn-lg" id="seedBtn">Synchronizuj strukturę i ustaw mnie jako admina</button>
       <div class="msg" id="seedMsg"></div>
       <pre id="seedLog" style="margin-top:14px;font-size:.8rem;color:var(--muted);white-space:pre-wrap"></pre>
     </div>
 
     <details class="adv" style="margin-top:18px">
-      <summary>Tymczasowe reguły na czas konfiguracji</summary>
+      <summary>Tymczasowe reguły na czas synchronizacji</summary>
       <div class="adv-body">
         <pre style="font-size:.78rem;white-space:pre-wrap;color:#cfcfe6">rules_version = '2';
 service cloud.firestore {
@@ -58,11 +58,12 @@ service cloud.firestore {
     }
   }
 }</pre>
-        <p class="hint">Po kliknięciu „Utwórz" przywróć docelowe reguły (te bezpieczne, które dostałeś).</p>
+        <p class="hint">Po synchronizacji przywróć docelowe reguły (te bezpieczne, które dostałeś).</p>
       </div>
     </details>
   </main>
+
   <div class="toast" id="toast"></div>
-  <script type="module" src="../js/setup.js"></script>
+  <script type="module" src="../js/sync.js"></script>
 </body>
 </html>

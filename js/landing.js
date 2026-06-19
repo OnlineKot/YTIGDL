@@ -18,11 +18,11 @@ $('pinModal').addEventListener('click', (e) => { if (e.target.id === 'pinModal')
 async function submitPin() {
   const pin = $('pinInput').value.trim();
   const msg = $('pinMsg');
-  if (!pin) { msg.className = 'msg error'; msg.textContent = 'Wpisz PIN.'; return; }
+  if (!pin) { msg.className = 'msg error'; msg.textContent = 'Wpisz hasło.'; return; }
   const btn = $('pinSubmit'); btn.disabled = true;
   try {
     if (await verifyPin(pin)) { sessionStorage.setItem('ytigdl_admin', '1'); location.href = 'admin/'; }
-    else { msg.className = 'msg error'; msg.textContent = 'Błędny PIN.'; }
+    else { msg.className = 'msg error'; msg.textContent = 'Błędne hasło.'; }
   } catch (e) { msg.className = 'msg error'; msg.textContent = e.message; }
   finally { btn.disabled = false; }
 }

@@ -14,7 +14,7 @@
   <nav class="nav">
     <a href="/" class="brand">
       <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg></span>
-      <span class="logo"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL">DL</span></span>
+      <span class="logo"><span class="bYT"><span class="fill yt">YT</span></span><span class="bIG"><span class="fill ig">IG</span></span><span class="bDL">DL</span></span>
     </a>
     <div class="nav-actions">
       <button class="btn btn-ghost" id="loginBtn">Zaloguj się</button>
@@ -60,7 +60,7 @@
     <div class="feature">
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/><circle cx="12" cy="12" r="3"/></svg></div>
       <h3>Twoje ustawienia</h3>
-      <p>Format, jakość, kodek, własna nazwa pliku, autor, a nawet przycinanie.</p>
+      <p>Format, jakość, kodek, własna nazwa pliku, a nawet przycinanie.</p>
     </div>
     <div class="feature">
       <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2"/></svg></div>
@@ -70,7 +70,7 @@
   </section>
 
   <footer>
-    <div>© <span id="year"></span> <span class="logo" style="font-size:1.05rem"><span class="bYT">YT</span><span class="bIG">IG</span><span class="bDL" id="secretSpot">DL</span></span> — pobierz wszystko.</div>
+    <div>© <span id="year"></span> <span class="logo" style="font-size:1.05rem"><span class="bYT"><span class="fill yt">YT</span></span><span class="bIG"><span class="fill ig">IG</span></span><span class="bDL" id="secretSpot">DL</span></span> — pobierz wszystko.</div>
     <div><a href="history/" style="color:var(--muted)">Historia</a> &nbsp;·&nbsp; Używaj zgodnie z prawem autorskim i regulaminami platform.</div>
   </footer>
 
@@ -79,8 +79,8 @@
     <div class="modal">
       <button class="modal-close" data-close-pin>&times;</button>
       <h2>Dostęp <span class="gradient">admina</span></h2>
-      <p class="sub">Wpisz PIN, aby przejść do panelu.</p>
-      <input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN" />
+      <p class="sub">Wpisz hasło, aby przejść do panelu.</p>
+      <input class="input" id="pinInput" type="password" autocomplete="off" placeholder="Hasło" />
       <button class="btn btn-primary btn-block" id="pinSubmit">Wejdź</button>
       <div class="msg" id="pinMsg"></div>
     </div>

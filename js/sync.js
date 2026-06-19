@@ -1,5 +1,5 @@
-// JEDNORAZOWY kreator: tworzy wszystkie kolekcje w Firestore i ustawia admina + PIN.
-// Strona tymczasowa — po użyciu zostanie usunięta.
+// Synchronizacja struktury: tworzy wszystkie kolekcje w Firestore,
+// ustawia admina i zapisuje hasło panelu w osobnej kolekcji (adminPins).
 import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { db } from './firebase.js';
 import { initAuthUI, getUser, openLogin, toast } from './ui.js';
@@ -16,9 +16,9 @@ $('seedBtn').addEventListener('click', async () => {
   if (!user.email) { msg.className = 'msg error'; msg.textContent = 'Zaloguj się kontem z adresem e-mail (np. Google).'; return; }
 
   const pin = $('pinSet').value.trim();
-  if (!pin) { msg.className = 'msg error'; msg.textContent = 'Podaj PIN do panelu.'; return; }
+  if (!pin) { msg.className = 'msg error'; msg.textContent = 'Podaj hasło do panelu.'; return; }
 
-  const btn = $('seedBtn'); btn.disabled = true; btn.textContent = 'Tworzę…';
+  const btn = $('seedBtn'); btn.disabled = true; btn.textContent = 'Synchronizuję…';
   log.textContent = '';
   const lines = [];
   const stamp = serverTimestamp();
@@ -46,11 +46,11 @@ $('seedBtn').addEventListener('click', async () => {
     log.textContent = lines.join('\n');
   }
 
-  btn.disabled = false; btn.textContent = 'Utwórz strukturę i ustaw mnie jako admina';
+  btn.disabled = false; btn.textContent = 'Synchronizuj strukturę i ustaw mnie jako admina';
   if (ok === items.length) {
     msg.className = 'msg ok';
-    msg.textContent = 'Gotowe! Wszystkie kolekcje utworzone. Przywróć docelowe reguły i powiedz, żebym usunął tę stronę.';
-    toast('Struktura bazy utworzona ✅', 'ok');
+    msg.textContent = 'Gotowe! Cała struktura w bazie. Przywróć docelowe reguły. Hasło zmienisz sam w kolekcji adminPins.';
+    toast('Struktura zsynchronizowana ✅', 'ok');
   } else {
     msg.className = 'msg error';
     msg.textContent = 'Część zapisów się nie udała — najpewniej reguły. Wklej tymczasowe reguły i spróbuj ponownie.';

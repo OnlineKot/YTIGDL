@@ -44,7 +44,7 @@ function collectOptions() {
     audioFormat: 'mp3',
     filenameStyle: $('optFilenameStyle').value,
     title: $('optTitle').value.trim() || null,
-    author: $('optAuthor').value.trim() || null,
+    author: 'YTIGDL', // autor zawsze YTIGDL (nie do zmiany)
     trimStart: $('optTrimStart').value.trim() || null,
     trimEnd: $('optTrimEnd').value.trim() || null,
   };
